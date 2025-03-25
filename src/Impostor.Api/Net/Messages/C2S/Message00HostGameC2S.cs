@@ -16,9 +16,9 @@ public static class Message00HostGameC2S
     }
 
     public static void Deserialize(IMessageReader reader, out IGameOptions gameOptions,
-        out CrossplayFlags crossplayFlags, out GameFilterOptions gameFilterOptions)
+        out CrossplayFlags crossplayFlags, out GameFilterOptions gameFilterOptions, out byte optionversion)
     {
-        gameOptions = GameOptionsFactory.Deserialize(reader);
+        gameOptions = GameOptionsFactory.Deserialize(reader, out optionversion);
         crossplayFlags = (CrossplayFlags)reader.ReadInt32();
         gameFilterOptions = GameFilterOptions.Deserialize(reader);
     }

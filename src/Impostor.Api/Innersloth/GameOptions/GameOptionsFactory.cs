@@ -24,10 +24,10 @@ public static class GameOptionsFactory
         writer.EndMessage();
     }
 
-    public static IGameOptions Deserialize(IMessageReader reader)
+    public static IGameOptions Deserialize(IMessageReader reader,out byte version)
     {
-        reader.ReadPackedInt32();
-        var version = reader.ReadByte();
+        /*reader.ReadPackedInt32();*/
+        version = reader.ReadByte();
 
         if (version < ModularOptionsDataVersion)
         {
@@ -47,7 +47,7 @@ public static class GameOptionsFactory
 
     public static void DeserializeInto(IMessageReader reader, IGameOptions gameOptions)
     {
-        reader.ReadPackedInt32();
+        /*reader.ReadPackedInt32();*/
         var version = reader.ReadByte();
 
         if (version < ModularOptionsDataVersion)

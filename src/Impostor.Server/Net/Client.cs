@@ -125,8 +125,9 @@ internal class Client(
             case MessageFlags.HostGame:
             {
                 // Read game settings.
-                Message00HostGameC2S.Deserialize(reader, out var gameOptions, out _, out var gameFilterOptions);
-
+                Message00HostGameC2S.Deserialize(reader, out var gameOptions, out _, out var gameFilterOptions, out var optionversion);
+                logger.LogDebug("option version {version}", optionversion);
+                
                 // Create game.
                 var game = await gameManager.CreateAsync(this, gameOptions, gameFilterOptions);
 

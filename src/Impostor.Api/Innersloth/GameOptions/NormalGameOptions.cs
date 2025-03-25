@@ -4,7 +4,7 @@ namespace Impostor.Api.Innersloth.GameOptions;
 
 public class NormalGameOptions : IGameOptions
 {
-    public const int LatestVersion = 8;
+    public const int LatestVersion = 9;
 
     public NormalGameOptions(byte version = LatestVersion)
     {
@@ -127,6 +127,8 @@ public class NormalGameOptions : IGameOptions
 
     /// <inheritdoc />
     public MapTypes Map { get; set; } = MapTypes.Skeld;
+    
+    public int Tag { get; set; }
 
     /// <inheritdoc />
     public int NumImpostors { get; set; } = 1;
@@ -169,6 +171,11 @@ public class NormalGameOptions : IGameOptions
         writer.Write(VisualTasks);
         writer.Write(AnonymousVotes);
         writer.Write((byte)TaskBarUpdate);
+
+        if (Version >= 9)
+        {
+            writer.Write((byte)Tag);
+        }
 
         RoleOptions.Serialize(writer);
 
@@ -220,6 +227,11 @@ public class NormalGameOptions : IGameOptions
         VisualTasks = reader.ReadBoolean();
         AnonymousVotes = reader.ReadBoolean();
         TaskBarUpdate = (TaskBarUpdate)reader.ReadByte();
+        
+        if (Version >= 9)
+        {
+            Tag = reader.ReadByte();
+        }
 
         RoleOptions.Deserialize(reader);
 
