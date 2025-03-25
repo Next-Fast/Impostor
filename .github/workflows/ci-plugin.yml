@@ -32,6 +32,6 @@ jobs:
       - name: Run the Cake script
         uses: cake-build/cake-action@v3
         with:
-          verbosity: Minimal
+          verbosity: verbose
           script-path: ./build-plugin.cake
 
