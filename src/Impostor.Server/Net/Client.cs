@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Impostor.Api;
@@ -22,7 +23,7 @@ internal class Client(
     IOptions<AntiCheatConfig> antiCheatOptions,
     ClientManager clientManager,
     GameManager gameManager,
-    IEventManager eventManager,
+    /*IEventManager eventManager,*/
     string name,
     GameVersion gameVersion,
     Language language,
@@ -113,12 +114,12 @@ internal class Client(
 
         logger.LogTrace("[{0}] Server got {1}.", Id, MessageFlags.FlagToString(flag));
 
-        var messageEvent = new GameMessageEvent(false, flag, reader);
+        /*var messageEvent = new GameMessageEvent(false, flag, reader);
         await eventManager.CallAsync(messageEvent);
         if (messageEvent.HasBreak)
         {
             return;
-        }
+        }*/
 
         switch (flag)
         {
@@ -126,7 +127,7 @@ internal class Client(
             {
                 // Read game settings.
                 Message00HostGameC2S.Deserialize(reader, out var gameOptions, out _, out var gameFilterOptions);
-
+                
                 // Create game.
                 var game = await gameManager.CreateAsync(this, gameOptions, gameFilterOptions);
 
@@ -135,7 +136,7 @@ internal class Client(
                     await DisconnectAsync(DisconnectReason.GameNotFound);
                     return;
                 }
-
+                
                 // Code in the packet below will be used in JoinGame.
                 using var writer = MessageWriter.Get(MessageType.Reliable);
                 Message00HostGameS2C.Serialize(writer, game.Code);

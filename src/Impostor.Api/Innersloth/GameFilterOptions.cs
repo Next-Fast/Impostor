@@ -4,7 +4,7 @@ namespace Impostor.Api.Innersloth;
 
 public class GameFilterOptions
 {
-    public HashSet<string> FilterTags { get; } = new();
+    public HashSet<string> FilterTags { get; } = [];
 
     public static GameFilterOptions CreateDefault()
     {

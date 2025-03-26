@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Impostor.Api.Innersloth.GameOptions;
@@ -50,6 +51,22 @@ public interface IGameOptions
     public bool IsDefaults { get; set; }
 
     public void Serialize(IMessageWriter writer);
+
+    public string SerializeToString(IMessageWriter writer)
+    {
+        Serialize(writer);
+        var bytes = writer.ToByteArray(false);
+        return Convert.ToBase64String(bytes);
+    }
+
+    public void DeserializeFormString(Func<byte[], IMessageReader> getReader, string data)
+    {
+        var bytes = Convert.FromBase64String(data);
+        var reader = getReader(bytes);
+        Deserialize(reader);
+    }
+
+    public void Deserialize(IMessageReader reader);
 
     public static void EnsureVersionIsModular<TCaller>(byte version)
     {

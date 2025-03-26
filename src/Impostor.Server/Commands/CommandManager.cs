@@ -70,6 +70,7 @@ public sealed class CommandManager(IServiceProvider provider) : ICommandManager
         }
     }
 
+#pragma warning disable CS1998
     private async ValueTask<bool> HandleDefaultCommandAsync(string command, string[] args)
     {
         return false;

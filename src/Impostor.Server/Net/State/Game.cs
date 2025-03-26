@@ -77,7 +77,7 @@ internal partial class Game(
 
     public bool IsHostAuthoritive
     {
-        get => Host != null && Host.Client.GameVersion.HasDisableServerAuthorityFlag;
+        get => Host is { Client.GameVersion.HasDisableServerAuthorityFlag: true };
     }
 
     public IClientPlayer? GetClientPlayer(int clientId)
@@ -138,6 +138,6 @@ internal partial class Game(
         return Players
             .Where(filter)
             .Select(p => p.Client.Connection)
-            .Where(c => c != null && c.IsConnected)!;
+            .Where(c => c is { IsConnected: true })!;
     }
 }

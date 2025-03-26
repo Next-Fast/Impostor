@@ -10,6 +10,7 @@ using Impostor.Api.Config;
 using Impostor.Api.Events.Managers;
 using Impostor.Api.Extension;
 using Impostor.Api.Extension.Commands;
+using Impostor.Api.Extension.Messages;
 using Impostor.Api.Extension.Utils;
 using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
@@ -23,7 +24,6 @@ using Impostor.Server.Hubs;
 using Impostor.Server.Net;
 using Impostor.Server.Net.Factories;
 using Impostor.Server.Net.Manager;
-using Impostor.Server.Net.Messages;
 using Impostor.Server.Plugins;
 using Impostor.Server.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -133,7 +133,6 @@ internal static class Program
 
                 services
                     .AddSingleton(WebHub.WebSink.Sink)
-                    .AddSingleton<HttpConnectionManager>()
                     .AddSingleton<ClientAuthManager>()
                     .AddSingleton<IMessageWriterProvider, MessageWriterProvider>()
                     .AddSingleton<IGameCodeFactory, GameCodeFactory>()

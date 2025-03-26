@@ -1,8 +1,10 @@
+using System;
+
 namespace Impostor.Api.Innersloth.GameOptions;
 
 public class HideNSeekGameOptions : IGameOptions
 {
-    public const int LatestVersion = 8;
+    public const int LatestVersion = 9;
 
     public HideNSeekGameOptions(byte version = LatestVersion)
     {
@@ -65,6 +67,8 @@ public class HideNSeekGameOptions : IGameOptions
     public uint SeekerPlayerId { get; set; } = 0xFFFFFFFF;
 
     public float MaxPingTime { get; set; } = 6f;
+    
+    public byte Tag { get; set; } = 0;
 
     /// <inheritdoc />
     public byte Version { get; }
@@ -128,6 +132,11 @@ public class HideNSeekGameOptions : IGameOptions
         writer.Write(SeekerPlayerId);
         writer.Write(MaxPingTime);
         writer.Write(CrewmateTimeInVent);
+        
+        if (Version >= 9)
+        {
+            writer.Write(Tag);
+        }
 
         if (Version > LatestVersion)
         {
@@ -174,6 +183,11 @@ public class HideNSeekGameOptions : IGameOptions
         SeekerPlayerId = reader.ReadUInt32();
         MaxPingTime = reader.ReadSingle();
         CrewmateTimeInVent = reader.ReadSingle();
+        
+        if (Version >= 9)
+        {
+            Tag = reader.ReadByte();
+        }
 
         if (Version > LatestVersion)
         {
