@@ -20,7 +20,7 @@ public class Message16GetGameListC2S
             throw new NotSupportedException($"Version {version} of {nameof(Message16GetGameListC2S)} is not supported");
         }
 
-        options = GameOptionsFactory.Deserialize(reader, out _);
+        options = GameOptionsFactory.Deserialize(reader);
         chatMode = (QuickChatModes)reader.ReadByte();
         crossplayFlags = (CrossplayFlags)reader.ReadInt32();
         gameFilterOptions = GameFilterOptions.Deserialize(reader);

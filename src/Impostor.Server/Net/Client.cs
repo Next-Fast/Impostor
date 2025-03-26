@@ -114,19 +114,19 @@ internal class Client(
 
         logger.LogTrace("[{0}] Server got {1}.", Id, MessageFlags.FlagToString(flag));
 
-        var messageEvent = new GameMessageEvent(false, flag, reader);
+        /*var messageEvent = new GameMessageEvent(false, flag, reader);
         await eventManager.CallAsync(messageEvent);
         if (messageEvent.HasBreak)
         {
             return;
-        }
+        }*/
 
         switch (flag)
         {
             case MessageFlags.HostGame:
             {
                 // Read game settings.
-                Message00HostGameC2S.Deserialize(reader, out var gameOptions, out _, out var gameFilterOptions, out var optionversion);
+                Message00HostGameC2S.Deserialize(reader, out var gameOptions, out _, out var gameFilterOptions);
                 
                 // Create game.
                 var game = await gameManager.CreateAsync(this, gameOptions, gameFilterOptions);

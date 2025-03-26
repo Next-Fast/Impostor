@@ -86,6 +86,7 @@
         "resolved": "9.0.3",
         "contentHash": "yCCJHvBcRyqapMSNzP+kTc57Eaavq2cr5Tmuil6/XVnipQf5xmskxakSQ1enU6S4+fNg3sJ27WcInV64q24JsA=="
       }
-    }
+    },
+    "net9.0/linux-x64": {}
   }
 }

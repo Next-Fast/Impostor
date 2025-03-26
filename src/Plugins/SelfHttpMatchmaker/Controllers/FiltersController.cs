@@ -37,6 +37,8 @@ public class FiltersController(INetListenerManager listenerManager, IGameManager
     {
         get => listenerManager.GetAvailableListener() ?? throw new InvalidOperationException();
     }
+
+    private static readonly List<Filters> AllFilters = Enum.GetValues<Filters>().ToList();
     
     [HttpGet("api/filters")]
     public IActionResult GetFilters()
@@ -44,7 +46,7 @@ public class FiltersController(INetListenerManager listenerManager, IGameManager
         return Ok(new PermittedFilters
         {
             // TODO: Add filters
-            Filters = [],
+            Filters = AllFilters,
         });
     }
 

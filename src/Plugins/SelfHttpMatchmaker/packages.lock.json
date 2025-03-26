@@ -677,6 +677,13 @@
           "NextImpostor.Api": "[1.10.2-dev, )"
         }
       }
+    },
+    "net9.0/linux-x64": {
+      "System.Security.Cryptography.Pkcs": {
+        "type": "Transitive",
+        "resolved": "8.0.1",
+        "contentHash": "CoCRHFym33aUSf/NtWSVSZa99dkd0Hm7OCZUxORBjRB16LNhIEOf8THPqzIYlvKM0nNDAPTRBa1FxEECrgaxxA=="
+      }
     }
   }
 }
