@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Impostor.Api;
@@ -126,7 +127,6 @@ internal class Client(
             {
                 // Read game settings.
                 Message00HostGameC2S.Deserialize(reader, out var gameOptions, out _, out var gameFilterOptions, out var optionversion);
-                logger.LogDebug("option version {version}", optionversion);
                 
                 // Create game.
                 var game = await gameManager.CreateAsync(this, gameOptions, gameFilterOptions);
@@ -136,7 +136,7 @@ internal class Client(
                     await DisconnectAsync(DisconnectReason.GameNotFound);
                     return;
                 }
-
+                
                 // Code in the packet below will be used in JoinGame.
                 using var writer = MessageWriter.Get(MessageType.Reliable);
                 Message00HostGameS2C.Serialize(writer, game.Code);

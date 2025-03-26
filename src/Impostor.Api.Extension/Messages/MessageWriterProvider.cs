@@ -1,4 +1,7 @@
-﻿namespace Impostor.Server.Net.Messages;
+﻿using Next.Hazel;
+using Next.Hazel.Abstractions;
+
+namespace Impostor.Api.Extension.Messages;
 
 public class MessageWriterProvider : IMessageWriterProvider
 {

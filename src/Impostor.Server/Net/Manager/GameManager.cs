@@ -57,6 +57,22 @@ internal class GameManager : IGameManager
         get => _games.Select(kv => kv.Value);
     }
 
+    internal readonly Dictionary<string, List<IGame>> GamesByFilter = new();
+
+    public List<string> GetFilterTags()
+    {
+        var list = new List<string>();
+        foreach (var (tag, games) in GamesByFilter)
+        {
+            if(games.Count == 0)
+                continue;
+            
+            list.Add(tag);
+        }
+
+        return list;
+    }
+
     IGame? IGameManager.Find(GameCode code)
     {
         return Find(code);
@@ -88,6 +104,14 @@ internal class GameManager : IGameManager
         if (!_games.TryRemove(gameCode, out game))
         {
             return;
+        }
+
+        foreach (var tag in game.FilterOptions.FilterTags)
+        {
+            if (!GamesByFilter.TryGetValue(tag, out var games))
+                continue;
+            
+            games.Remove(game);
         }
 
         _logger.LogDebug("Remove game with code {0} ({1}).", GameCodeParser.IntToGameName(gameCode), gameCode);
@@ -127,6 +151,19 @@ internal class GameManager : IGameManager
         if (!success || game == null)
         {
             throw new ImpostorException("Could not create new game"); // TODO: Fix generic exception.
+        }
+        
+        foreach (var tag in filterOptions.FilterTags)
+        {
+
+            if (!GamesByFilter.TryGetValue(tag, out var list))
+            {
+                GamesByFilter[tag] = [game];
+            }
+            else
+            {
+                GamesByFilter[tag].Add(game);
+            }
         }
 
         return game;

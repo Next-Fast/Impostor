@@ -9,6 +9,8 @@ public interface IGameManager
 {
     IEnumerable<IGame> Games { get; }
 
+    List<string> GetFilterTags();
+        
     IGame? Find(GameCode code);
 
     /// <summary>

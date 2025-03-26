@@ -23,5 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0"/>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.3" />
+    <PackageReference Include="NextFast.Hazel" Version="1.0.2-ci.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0"/>
   </ItemGroup>
 </Project>

@@ -116,10 +116,11 @@ public sealed class GamesController(
             return NotFound(new MatchmakerResponse(new MatchmakerError(DisconnectReason.GameNotFound)));
         }
 
+        var listing = GameListing.FromV2(game, HostServer.Ip, HostServer.Port);
         var res = new FindGameByCodeResponse
         {
             Errors = [],
-            Game = GameListing.From(game, HostServer.Ip, HostServer.Port),
+            Game = listing,
             Region = StringNames.NoTranslation,
             UntranslatedRegion = config.Value.RegionName,
         };
