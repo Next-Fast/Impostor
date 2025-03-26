@@ -59,12 +59,15 @@ internal class GameManager : IGameManager
 
     internal readonly Dictionary<string, List<IGame>> GamesByFilter = new();
 
-    public List<string> GetFilterTags()
+    public List<string> GetFilterTags(GameKeywords lang)
     {
         var list = new List<string>();
         foreach (var (tag, games) in GamesByFilter)
         {
             if(games.Count == 0)
+                continue;
+
+            if (games.All(game => game.Options.Keywords != lang))
                 continue;
             
             list.Add(tag);
@@ -118,6 +121,7 @@ internal class GameManager : IGameManager
 
         await _eventManager.CallAsync(new GameDestroyedEvent(game));
     }
+    
 
     public async ValueTask<IGame?> CreateAsync(IClient? owner, IGameOptions options, GameFilterOptions filterOptions)
     {

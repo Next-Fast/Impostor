@@ -133,7 +133,6 @@ internal static class Program
 
                 services
                     .AddSingleton(WebHub.WebSink.Sink)
-                    .AddSingleton<HttpConnectionManager>()
                     .AddSingleton<ClientAuthManager>()
                     .AddSingleton<IMessageWriterProvider, MessageWriterProvider>()
                     .AddSingleton<IGameCodeFactory, GameCodeFactory>()

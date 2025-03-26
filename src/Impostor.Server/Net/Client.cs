@@ -23,7 +23,7 @@ internal class Client(
     IOptions<AntiCheatConfig> antiCheatOptions,
     ClientManager clientManager,
     GameManager gameManager,
-    IEventManager eventManager,
+    /*IEventManager eventManager,*/
     string name,
     GameVersion gameVersion,
     Language language,

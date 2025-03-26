@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Impostor.Api.Config;
+using Impostor.Api.Extension.Utils;
 using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
 using Impostor.Api.Innersloth;
@@ -53,7 +54,13 @@ public class FiltersController(INetListenerManager listenerManager, IGameManager
     [HttpGet("api/filtertags")]
     public IActionResult GetFilterTags()
     {
-        var filters = gameManager.GetFilterTags();
+        if (!Request.TryGetSingleOrDefault("lang", out var langString))
+        {
+            return BadRequest("No Get Lang");
+        }
+
+        var lang = (GameKeywords)uint.Parse(langString);
+        var filters = gameManager.GetFilterTags(lang);
         return Ok(filters);
     }
 
@@ -61,17 +68,11 @@ public class FiltersController(INetListenerManager listenerManager, IGameManager
     public IActionResult GetFilteredGames()
     {
         // TODO: Add filter
-
-        if (!Request.Query.TryGetValue("filter", out var value))
+        if (!Request.TryGetSingleOrDefault("filter", out var content))
         {
             return BadRequest("No Get filter");
         }
-
-        var content = value.FirstOrDefault();
-        if (content == null)
-        {
-            return BadRequest("No Get filter");
-        }
+        
         var set = JsonSerializer.Deserialize<GameFiltersList>(content)?.FilterSets[0];
 
         if (set == null)
@@ -101,4 +102,5 @@ public class FiltersController(INetListenerManager listenerManager, IGameManager
         // TODO: Add filter
         return true;
     }
+    
 }
