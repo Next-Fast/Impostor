@@ -173,19 +173,7 @@ internal sealed class NetListenerManager(
         {
             try
             {
-                if (info.Listener is null)
-                {
-                    continue;
-                }
-
-                await info.Listener.DisposeAsync();
-
-                if (info.AuthListener is null)
-                {
-                    continue;
-                }
-
-                await info.AuthListener.DisposeAsync();
+                await StopListenerAsync(info);
             }
             catch (Exception e)
             {
@@ -236,10 +224,33 @@ internal sealed class NetListenerManager(
         await clientManager.RegisterConnectionAsync(connection, name, clientVersion, language, chatMode,
             platformSpecificData);
     }
-
+    
     public ListenerConfig? GetAvailableListener()
     {
-        return Listeners.FirstOrDefault()?.Config;
+        return GetAvailableListenerInfo()?.Config;
+    }
+
+    public ListenerInfo? GetAvailableListenerInfo()
+    {
+        return Listeners.FirstOrDefault();
+    }
+    
+    public event Action<INetListenerManager, ListenerConfig> OnDisposeListener;
+
+    public async Task StopListenerAsync(ListenerInfo info)
+    {
+        if (info.Listener is not null)
+        {
+            await info.Listener.DisposeAsync();
+        }
+
+        if (info.AuthListener is not null)
+        {
+            await info.AuthListener.DisposeAsync();
+        }
+
+        Listeners.Remove(info);
+        OnDisposeListener.Invoke(this, info.Config);
     }
 
     public record ListenerInfo(

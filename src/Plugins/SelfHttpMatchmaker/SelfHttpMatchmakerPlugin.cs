@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SelfHttpMatchmaker.Types;
 
 namespace SelfHttpMatchmaker;
 
@@ -17,5 +18,6 @@ public class SelfHttpMatchmakerPlugin : IPlugin, IHttpPluginStartup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton<ListingManager>();
+        services.AddSingleton<IHostServer, HostServerGet>();
     }
 }

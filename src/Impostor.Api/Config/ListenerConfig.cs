@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Impostor.Api.Config;
 
 public class ListenerConfig
@@ -7,6 +9,9 @@ public class ListenerConfig
     public string ListenIp { get; set; } = "0.0.0.0";
     public ushort ListenPort { get; set; } = 22023;
     public bool IsDtl { get; set; } = false;
+    
+    /*public bool DynamicUdpPort { get; set; } = false;
+    public List<(int min, int max)> PortRange { get; set; } = [];*/
 
     public string PrivateKeyPath { get; set; } = string.Empty;
     public string CertificatePath { get; set; } = string.Empty;

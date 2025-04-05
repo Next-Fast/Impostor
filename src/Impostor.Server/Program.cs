@@ -210,7 +210,7 @@ internal static class Program
         };
     }
 
-    internal static UUID CurrentUuid = UUID.New();
+    internal static string CurrentUuid = Guid.NewGuid().ToString();
     private static IHostBuilder ConfigureExtension(this IHostBuilder builder, ExtensionServerConfig config)
     {
         if (!config.Enabled)
@@ -258,7 +258,7 @@ internal static class Program
                                     ValidateIssuerSigningKey = true,
                                     ValidateLifetime = true,
                                     IssuerSigningKey =
-                                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(CurrentUuid.ToString())),
+                                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(CurrentUuid)),
                                 };
                             })
                             .Services

@@ -21,30 +21,10 @@ namespace SelfHttpMatchmaker.Controllers;
 public sealed class GamesController(
     IGameManager gameManager,
     ListingManager listingManager,
-    INetListenerManager listenerManager,
-    IOptions<ExtensionServerConfig> config) : ControllerBase
+    IOptions<ExtensionServerConfig> config,
+    IHostServer hostServer) : ControllerBase
 {
-    private HostServer? _hostServer;
-
-    private HostServer HostServer
-    {
-        get
-        {
-            if (_hostServer != null)
-            {
-                return _hostServer;
-            }
-
-            _hostServer = HostServer.From(IPAddress.Parse(Listener.PublicIp.ResolveIp()), Listener.PublicPort);
-            return _hostServer;
-        }
-    }
-
-    private ListenerConfig Listener
-    {
-        get => listenerManager.GetAvailableListener() ?? throw new InvalidOperationException();
-    }
-
+    
     /// <summary>
     ///     Get a list of active games.
     /// </summary>
@@ -73,7 +53,7 @@ public sealed class GamesController(
 
         var listings = listingManager.FindListings(HttpContext, mapId, numImpostors, lang, clientVersion);
 
-        return Ok(listings.Select(n => GameListing.From(n, HostServer.Ip, HostServer.Port)));
+        return Ok(listings.Select(n => GameListing.From(n, hostServer.Ip, hostServer.Port)));
     }
 
     /// <summary>
@@ -93,7 +73,7 @@ public sealed class GamesController(
             return NotFound(new MatchmakerResponse(new MatchmakerError(DisconnectReason.GameNotFound)));
         }
 
-        return Ok(HostServer);
+        return Ok(hostServer);
     }
 
     /// <summary>
@@ -103,7 +83,7 @@ public sealed class GamesController(
     [HttpPut]
     public IActionResult Put()
     {
-        return Ok(HostServer);
+        return Ok(hostServer);
     }
 
     [HttpGet("{gameId:int}")]
@@ -116,7 +96,7 @@ public sealed class GamesController(
             return NotFound(new MatchmakerResponse(new MatchmakerError(DisconnectReason.GameNotFound)));
         }
 
-        var listing = GameListing.FromV2(game, HostServer.Ip, HostServer.Port);
+        var listing = GameListing.FromV2(game, hostServer.Ip, hostServer.Port);
         var res = new FindGameByCodeResponse
         {
             Errors = [],
