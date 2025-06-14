@@ -9,11 +9,6 @@ public static class DotnetUtils
 {
     private static string? _version;
 
-    public static IActionResult OkJson<T>(this T content)
-    {
-        return new OkObjectResult(JsonSerializer.Serialize(content));
-    }
-
     public static string Version
     {
         get
@@ -46,5 +41,10 @@ public static class DotnetUtils
     public static string Environment
     {
         get => IsDev ? Environments.Development : Environments.Production;
+    }
+
+    public static IActionResult OkJson<T>(this T content)
+    {
+        return new OkObjectResult(JsonSerializer.Serialize(content));
     }
 }

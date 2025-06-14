@@ -104,6 +104,8 @@ public class NormalGameOptions : IGameOptions
 
     public RoleOptionsCollection RoleOptions { get; set; }
 
+    public int Tag { get; set; }
+
     /// <inheritdoc />
     public byte Version { get; }
 
@@ -127,8 +129,6 @@ public class NormalGameOptions : IGameOptions
 
     /// <inheritdoc />
     public MapTypes Map { get; set; } = MapTypes.Skeld;
-    
-    public int Tag { get; set; }
 
     /// <inheritdoc />
     public int NumImpostors { get; set; } = 1;
@@ -185,13 +185,6 @@ public class NormalGameOptions : IGameOptions
         }
     }
 
-    public static NormalGameOptions Deserialize(IMessageReader reader, byte version)
-    {
-        var options = new NormalGameOptions(version);
-        options.Deserialize(reader);
-        return options;
-    }
-
     public void Deserialize(IMessageReader reader)
     {
         if (Version >= 8)
@@ -227,7 +220,7 @@ public class NormalGameOptions : IGameOptions
         VisualTasks = reader.ReadBoolean();
         AnonymousVotes = reader.ReadBoolean();
         TaskBarUpdate = (TaskBarUpdate)reader.ReadByte();
-        
+
         if (Version >= 9)
         {
             Tag = reader.ReadByte();
@@ -239,5 +232,12 @@ public class NormalGameOptions : IGameOptions
         {
             IGameOptions.ThrowUnknownVersion<NormalGameOptions>(Version);
         }
+    }
+
+    public static NormalGameOptions Deserialize(IMessageReader reader, byte version)
+    {
+        var options = new NormalGameOptions(version);
+        options.Deserialize(reader);
+        return options;
     }
 }

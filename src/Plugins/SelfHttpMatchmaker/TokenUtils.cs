@@ -6,7 +6,7 @@ namespace SelfHttpMatchmaker;
 public static class TokenUtils
 {
     public const string Token = "TianMengToken";
-    private static SHA256 _hash = SHA256.Create();
+    private static readonly SHA256 _hash = SHA256.Create();
 
     public static string GetTokenHashString()
     {

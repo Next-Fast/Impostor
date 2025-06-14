@@ -23,7 +23,7 @@ public static class GeneratorExtensions
 {
     private static readonly List<BaseGenerator> Generators = [];
 
-    private static bool TryGetGenerator<T>([MaybeNullWhen(false)]out T generator) where T : BaseGenerator
+    private static bool TryGetGenerator<T>([MaybeNullWhen(false)] out T generator) where T : BaseGenerator
     {
         if (Generators.FirstOrDefault(x => x is T) is T get)
         {
@@ -34,12 +34,14 @@ public static class GeneratorExtensions
         generator = null;
         return false;
     }
-    
+
     public static EnumGenerator GetEnum(this BaseGenerator @base)
     {
         if (TryGetGenerator<EnumGenerator>(out var generator))
+        {
             return generator;
-        
+        }
+
         var newGenerator = new EnumGenerator(@base._sourceProductionContext, @base._files);
         Generators.Add(newGenerator);
         return newGenerator;
@@ -48,8 +50,10 @@ public static class GeneratorExtensions
     public static MapDataGenerator GetMapData(this BaseGenerator @base)
     {
         if (TryGetGenerator<MapDataGenerator>(out var generator))
+        {
             return generator;
-        
+        }
+
         var newGenerator = new MapDataGenerator(@base._sourceProductionContext, @base._files);
         Generators.Add(newGenerator);
         return newGenerator;
@@ -59,7 +63,7 @@ public static class GeneratorExtensions
     {
         if (TryGetGenerator<LanguageGenerator>(out var generator))
             return generator;
-        
+
         var newGenerator = new LanguageGenerator(@base._sourceProductionContext, @base._files);
         Generators.Add(newGenerator);
         return newGenerator;

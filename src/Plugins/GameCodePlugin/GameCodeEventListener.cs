@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Impostor.Api.Events;
 using Impostor.Api.Extension.Events;
 using Impostor.Api.Games;
@@ -9,11 +8,14 @@ namespace GameCodePlugin;
 public class GameCodeEventListener(GameCodeStateManager stateManager) : IEventListener
 {
     [EventListener]
-
     public void OnCreateCode(GameCodeCreateEvent @event)
     {
         var code = stateManager.GetCode();
-        if (code == null) return;
+        if (code == null)
+        {
+            return;
+        }
+
         @event.Result = new EventOutcome<GameCode>(code.Value);
     }
 

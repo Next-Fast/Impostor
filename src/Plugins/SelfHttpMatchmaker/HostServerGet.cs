@@ -9,9 +9,8 @@ namespace SelfHttpMatchmaker;
 
 public class HostServerGet(INetListenerManager listenerManager, Logger<HostServerGet> logger) : IHostServer
 {
-    private bool _hasAdd;
-    
     private ListenerConfig? _currentConfig;
+    private bool _hasAdd;
 
     [JsonPropertyName("Ip")]
     public long Ip
@@ -19,7 +18,7 @@ public class HostServerGet(INetListenerManager listenerManager, Logger<HostServe
         get
         {
             Check();
-            
+
             if (_currentConfig == null)
             {
                 logger.LogError("CurrentConfig is null");
@@ -39,7 +38,7 @@ public class HostServerGet(INetListenerManager listenerManager, Logger<HostServe
         get
         {
             Check();
-            
+
             if (_currentConfig != null)
             {
                 return _currentConfig.PublicPort;
@@ -54,21 +53,25 @@ public class HostServerGet(INetListenerManager listenerManager, Logger<HostServe
     {
         if (!_hasAdd)
         {
-            listenerManager.OnDisposeListener += OnDisposeListener; 
-            _hasAdd = true;    
+            listenerManager.OnDisposeListener += OnDisposeListener;
+            _hasAdd = true;
         }
 
         if (_currentConfig != null)
+        {
             return;
-        
+        }
+
         _currentConfig = listenerManager.GetAvailableListener();
     }
 
     private void OnDisposeListener(INetListenerManager manager, ListenerConfig config)
     {
         if (_currentConfig != config)
+        {
             return;
-        
+        }
+
         _currentConfig = null;
     }
 }

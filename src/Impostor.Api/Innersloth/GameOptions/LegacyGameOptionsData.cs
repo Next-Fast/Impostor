@@ -201,13 +201,6 @@ public class LegacyGameOptionsData(byte version = LegacyGameOptionsData.LatestVe
         }
     }
 
-    public static LegacyGameOptionsData Deserialize(IMessageReader reader, byte version)
-    {
-        var options = new LegacyGameOptionsData(version);
-        options.Deserialize(reader);
-        return options;
-    }
-
     public void Deserialize(IMessageReader reader)
     {
         Version = reader.ReadByte();
@@ -264,5 +257,12 @@ public class LegacyGameOptionsData(byte version = LegacyGameOptionsData.LatestVe
         {
             IGameOptions.ThrowUnknownVersion<LegacyGameOptionsData>(Version);
         }
+    }
+
+    public static LegacyGameOptionsData Deserialize(IMessageReader reader, byte version)
+    {
+        var options = new LegacyGameOptionsData(version);
+        options.Deserialize(reader);
+        return options;
     }
 }

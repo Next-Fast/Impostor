@@ -56,7 +56,7 @@ public sealed class SourceGenerator : IIncrementalGenerator
             }
 
             var generator = new BaseGenerator(spc, files);
-            
+
             var enumGenerator = generator.GetEnum();
             enumGenerator.Generate("ColorType", "Impostor.Api.Innersloth.Customization");
             enumGenerator.Generate("DisconnectReason", sourceName: "DisconnectReasons");
@@ -79,7 +79,7 @@ public sealed class SourceGenerator : IIncrementalGenerator
             {
                 mapDataGenerator.Generate(mapName);
             }
-            
+
             /*var languageGenerator = generator.GetLanguage();
             languageGenerator.Generate("English");*/
         });

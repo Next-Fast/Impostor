@@ -32,6 +32,13 @@ internal sealed class NetListenerManager(
 
     public Dictionary<(string, string), X509Certificate2> CachedCertificates { get; } = new();
 
+    public ListenerConfig? GetAvailableListener()
+    {
+        return GetAvailableListenerInfo()?.Config;
+    }
+
+    public event Action<INetListenerManager, ListenerConfig> OnDisposeListener;
+
     public void Create(ListenerConfig config, int index = 0)
     {
         if (!CheckConfig(config))
@@ -58,7 +65,8 @@ internal sealed class NetListenerManager(
         {
             if (File.Exists(config.CertificatePath) && File.Exists(config.PrivateKeyPath))
             {
-                logger.LogInformation("New certificate loaded: {certificatePath} {privateKeyPath}", config.CertificatePath, config.PrivateKeyPath);
+                logger.LogInformation("New certificate loaded: {certificatePath} {privateKeyPath}",
+                    config.CertificatePath, config.PrivateKeyPath);
                 var newCertificate = DtlsHelper.GetCertificate(File.ReadAllText(config.CertificatePath),
                     File.ReadAllText(config.PrivateKeyPath));
                 certificate = CachedCertificates[(config.CertificatePath, config.PrivateKeyPath)] = newCertificate;
@@ -123,7 +131,7 @@ internal sealed class NetListenerManager(
         if (config.HasAuth || config.IsDtl)
         {
             logger.LogWarning("Dtls and auth is not supported yet");
-            
+
             if (config is { PrivateKeyPath: "" } or { CertificatePath: "" })
             {
                 logger.LogWarning("private key or certificate path is empty not use dtl and auth");
@@ -211,7 +219,7 @@ internal sealed class NetListenerManager(
             out var platformSpecificData, out var matchmakerToken,
             out var lastId, out var friendCode
         );
-        
+
         logger.LogInformation(
             "Has New Connection Ip:{ip} isDtl:{dtl} Name:{name} Token:{token} FriendCode:{code} LastId:{Id}",
             eventArgs.Connection.EndPoint.ToString(), isDtl, name, matchmakerToken, friendCode, lastId);
@@ -224,18 +232,11 @@ internal sealed class NetListenerManager(
         await clientManager.RegisterConnectionAsync(connection, name, clientVersion, language, chatMode,
             platformSpecificData);
     }
-    
-    public ListenerConfig? GetAvailableListener()
-    {
-        return GetAvailableListenerInfo()?.Config;
-    }
 
     public ListenerInfo? GetAvailableListenerInfo()
     {
         return Listeners.FirstOrDefault();
     }
-    
-    public event Action<INetListenerManager, ListenerConfig> OnDisposeListener;
 
     public async Task StopListenerAsync(ListenerInfo info)
     {

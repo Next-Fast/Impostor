@@ -7,7 +7,6 @@ using Impostor.Api;
 using Impostor.Api.Config;
 using Impostor.Api.Events;
 using Impostor.Api.Events.Managers;
-using Impostor.Api.Extension.Events;
 using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
 using Impostor.Api.Innersloth;
@@ -33,6 +32,8 @@ internal class GameManager : IGameManager
     private readonly ILogger<GameManager> _logger;
     private readonly IServiceProvider _serviceProvider;
 
+    internal readonly Dictionary<string, List<IGame>> GamesByFilter = new();
+
     public GameManager(
         ILogger<GameManager> logger,
         IOptions<ServerConfig> config,
@@ -57,19 +58,21 @@ internal class GameManager : IGameManager
         get => _games.Select(kv => kv.Value);
     }
 
-    internal readonly Dictionary<string, List<IGame>> GamesByFilter = new();
-
     public List<string> GetFilterTags(GameKeywords lang)
     {
         var list = new List<string>();
         foreach (var (tag, games) in GamesByFilter)
         {
-            if(games.Count == 0)
+            if (games.Count == 0)
+            {
                 continue;
+            }
 
             if (games.All(game => game.Options.Keywords != lang))
+            {
                 continue;
-            
+            }
+
             list.Add(tag);
         }
 
@@ -112,8 +115,10 @@ internal class GameManager : IGameManager
         foreach (var tag in game.FilterOptions.FilterTags)
         {
             if (!GamesByFilter.TryGetValue(tag, out var games))
+            {
                 continue;
-            
+            }
+
             games.Remove(game);
         }
 
@@ -121,7 +126,7 @@ internal class GameManager : IGameManager
 
         await _eventManager.CallAsync(new GameDestroyedEvent(game));
     }
-    
+
 
     public async ValueTask<IGame?> CreateAsync(IClient? owner, IGameOptions options, GameFilterOptions filterOptions)
     {
@@ -156,10 +161,9 @@ internal class GameManager : IGameManager
         {
             throw new ImpostorException("Could not create new game"); // TODO: Fix generic exception.
         }
-        
+
         foreach (var tag in filterOptions.FilterTags)
         {
-
             if (!GamesByFilter.TryGetValue(tag, out var list))
             {
                 GamesByFilter[tag] = [game];

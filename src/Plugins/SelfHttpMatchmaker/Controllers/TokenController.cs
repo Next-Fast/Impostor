@@ -16,8 +16,6 @@ public sealed class TokenController : ControllerBase
     /// </summary>
     /// <param name="request">Token parameters that need to be put into the token.</param>
     /// <returns>A bare minimum authentication token that the client will accept.</returns>
-    
-    
     [HttpPost]
     public IActionResult GetToken([FromBody] TokenRequest request)
     {

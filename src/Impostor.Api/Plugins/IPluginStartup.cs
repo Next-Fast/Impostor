@@ -9,6 +9,6 @@ public interface IPluginStartup
     void ConfigureHost(IHostBuilder host) { }
 
     void ConfigureServices(IServiceCollection services) { }
-    
+
     void ConfigureConfiguration(IConfigurationBuilder config) { }
 }

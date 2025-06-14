@@ -200,7 +200,7 @@ internal static class Program
             _ => config,
         };
     }
-    
+
     private static IConfiguration GetConfig<T>(this IConfiguration configuration, string section, out T result)
         where T : class, new()
     {

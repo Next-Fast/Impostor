@@ -8,8 +8,11 @@ namespace SelfHttpMatchmaker;
 [ImpostorPlugin("SelfHttpMatchmaker.Impostor.Next")]
 public class SelfHttpMatchmakerPlugin : IPlugin, IHttpPluginStartup
 {
-    public bool AssemblyPart => true;
-    
+    public bool AssemblyPart
+    {
+        get => true;
+    }
+
 
     public void ConfigureServices(IServiceCollection services)
     {

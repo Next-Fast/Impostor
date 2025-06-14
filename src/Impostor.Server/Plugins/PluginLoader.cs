@@ -6,7 +6,6 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Loader;
 using Impostor.Api.Config;
-using Impostor.Api.Extension;
 using Impostor.Api.Extension.Plugins;
 using Impostor.Api.Plugins;
 using Impostor.Api.Utils;
@@ -23,6 +22,8 @@ namespace Impostor.Server.Plugins;
 internal static class PluginLoader
 {
     private static readonly ILogger Logger = Log.ForContext(typeof(PluginLoader));
+
+    internal static List<PluginInformation> AllPluginLoad = [];
 
     private static bool IsTargetType(Type type)
     {
@@ -53,97 +54,98 @@ internal static class PluginLoader
     {
         try
         {
-                    var assemblyInfos = new List<IAssemblyInformation>();
-        var context = AssemblyLoadContext.Default;
+            var assemblyInfos = new List<IAssemblyInformation>();
+            var context = AssemblyLoadContext.Default;
 
-        // Add the plugins and libraries.
-        var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
-        matcher.AddInclude("*.dll");
-        matcher.AddExclude("Impostor.Api.dll");
-        matcher.AddExclude("Impostor.Api.Extension.dll");
+            // Add the plugins and libraries.
+            var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
+            matcher.AddInclude("*.dll");
+            matcher.AddExclude("Impostor.Api.dll");
+            matcher.AddExclude("Impostor.Api.Extension.dll");
 
-        config
-            .PluginPaths
-            .CheckPaths()
-            .RegisterAssemblies(matcher, assemblyInfos, true);
+            config
+                .PluginPaths
+                .CheckPaths()
+                .RegisterAssemblies(matcher, assemblyInfos, true);
 
-        config
-            .LibraryPaths
-            .CheckPaths()
-            .RegisterAssemblies(matcher, assemblyInfos, false);
+            config
+                .LibraryPaths
+                .CheckPaths()
+                .RegisterAssemblies(matcher, assemblyInfos, false);
 
-        // Register the resolver to the current context.
-        // TODO: Move this to a new context so we can unload/reload plugins.
-        context.Resolving += (loadContext, name) =>
-        {
-            Logger.Verbose("Loading assembly {0} v{1}", name.Name, name.Version);
-
-            switch (name.Name)
+            // Register the resolver to the current context.
+            // TODO: Move this to a new context so we can unload/reload plugins.
+            context.Resolving += (loadContext, name) =>
             {
-                // Some plugins may be referencing another Impostor.Api version and try to load it.
-                // We want to only use the one shipped with the server.
-                case "Impostor.Api":
-                    return typeof(IPlugin).Assembly;
-                case "Impostor.Api.Extension":
-                    return typeof(IHttpPluginStartup).Assembly;
-                default:
+                Logger.Verbose("Loading assembly {0} v{1}", name.Name, name.Version);
+
+                switch (name.Name)
                 {
-                    var info = assemblyInfos.FirstOrDefault(a => a.AssemblyName.Name == name.Name);
+                    // Some plugins may be referencing another Impostor.Api version and try to load it.
+                    // We want to only use the one shipped with the server.
+                    case "Impostor.Api":
+                        return typeof(IPlugin).Assembly;
+                    case "Impostor.Api.Extension":
+                        return typeof(IHttpPluginStartup).Assembly;
+                    default:
+                    {
+                        var info = assemblyInfos.FirstOrDefault(a => a.AssemblyName.Name == name.Name);
 
-                    return info?.Load(loadContext);
+                        return info?.Load(loadContext);
+                    }
                 }
-            }
-        };
+            };
 
-        // TODO: Catch uncaught exceptions.
-        var assemblies = assemblyInfos
-            .Where(a => a.IsPlugin)
-            .Select(a => context.LoadFromAssemblyName(a.AssemblyName))
-            .ToList();
-
-        // Find all plugins.
-        var plugins = new List<PluginInformation>();
-        var cacher = new TypesCacher(IsTargetType);
-
-        foreach (var assembly in assemblies)
-        {
-            // Find plugin startup.
-            var pluginStartup = assembly
-                .GetTypes()
-                .Where(t => typeof(IPluginStartup).IsAssignableFrom(t) && t.IsClass)
+            // TODO: Catch uncaught exceptions.
+            var assemblies = assemblyInfos
+                .Where(a => a.IsPlugin)
+                .Select(a => context.LoadFromAssemblyName(a.AssemblyName))
                 .ToList();
 
-            if (pluginStartup.Count > 1)
+            // Find all plugins.
+            var plugins = new List<PluginInformation>();
+            var cacher = new TypesCacher(IsTargetType);
+
+            foreach (var assembly in assemblies)
             {
-                Logger.Warning("A plugin may only define zero or one IPluginStartup implementation ({0}).", assembly);
-                continue;
+                // Find plugin startup.
+                var pluginStartup = assembly
+                    .GetTypes()
+                    .Where(t => typeof(IPluginStartup).IsAssignableFrom(t) && t.IsClass)
+                    .ToList();
+
+                if (pluginStartup.Count > 1)
+                {
+                    Logger.Warning("A plugin may only define zero or one IPluginStartup implementation ({0}).",
+                        assembly);
+                    continue;
+                }
+
+                // Find plugin.
+                var plugin = assembly
+                    .GetTypes()
+                    .Where(t => typeof(IPlugin).IsAssignableFrom(t)
+                                && t is { IsClass: true, IsAbstract: false }
+                                && t.GetCustomAttribute<ImpostorPluginAttribute>() != null)
+                    .ToList();
+
+                if (plugin.Count != 1)
+                {
+                    Logger.Warning("A plugin must define exactly one IPlugin or PluginBase implementation ({0}).",
+                        assembly);
+                    continue;
+                }
+
+                // Save plugin.
+                plugins.Add(new PluginInformation(
+                    pluginStartup
+                        .Select(Activator.CreateInstance)
+                        .Cast<IPluginStartup>()
+                        .FirstOrDefault(),
+                    plugin.Single(), assembly));
             }
 
-            // Find plugin.
-            var plugin = assembly
-                .GetTypes()
-                .Where(t => typeof(IPlugin).IsAssignableFrom(t)
-                            && t is { IsClass: true, IsAbstract: false }
-                            && t.GetCustomAttribute<ImpostorPluginAttribute>() != null)
-                .ToList();
-
-            if (plugin.Count != 1)
-            {
-                Logger.Warning("A plugin must define exactly one IPlugin or PluginBase implementation ({0}).",
-                    assembly);
-                continue;
-            }
-
-            // Save plugin.
-            plugins.Add(new PluginInformation(
-                pluginStartup
-                    .Select(Activator.CreateInstance)
-                    .Cast<IPluginStartup>()
-                    .FirstOrDefault(),
-                plugin.Single(), assembly));
-        }
-
-        AllPluginLoad = LoadOrderPlugins(plugins);
+            AllPluginLoad = LoadOrderPlugins(plugins);
         }
         catch (Exception e)
         {
@@ -152,8 +154,6 @@ internal static class PluginLoader
 
         return builder;
     }
-
-    internal static List<PluginInformation> AllPluginLoad = [];
 
     internal static IHostBuilder ConfigurePluginService(this IHostBuilder builder, PluginConfig config)
     {
@@ -170,7 +170,7 @@ internal static class PluginLoader
                 {
                     enableHttp = true;
                     httpPluginStartup.Add((startup, plugin));
-                
+
                     if (startup.AssemblyPart)
                     {
                         enablePart = true;
@@ -189,9 +189,9 @@ internal static class PluginLoader
                     plugin.Startup?.ConfigureServices(services);
                 }
             });
-        
+
             if (enableHttp)
-            { 
+            {
                 builder.ConfigureWebHostDefaults(hostBuilder =>
                 {
                     hostBuilder.ConfigureServices((host, services) =>
@@ -228,14 +228,14 @@ internal static class PluginLoader
                             });
                         }
                     });
-                }); 
+                });
             }
         }
         catch (Exception e)
         {
             Logger.Error(e, "failed to Configure Plugin Service");
         }
-        
+
         return builder;
     }
 
@@ -408,6 +408,7 @@ internal static class PluginLoader
                     _types.Add(type);
                 }
             }
+
             return this;
         }
     }

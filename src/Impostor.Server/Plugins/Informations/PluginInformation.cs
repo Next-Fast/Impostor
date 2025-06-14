@@ -13,7 +13,7 @@ public class PluginInformation
     public PluginInformation(IPluginStartup? startup, Type pluginType, Assembly assembly)
     {
         _attribute = pluginType.GetCustomAttribute<ImpostorPluginAttribute>()!;
-        
+
         Name = _attribute.Name ??
                assembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title ?? assembly.GetName().Name!;
         Author = _attribute.Author ?? assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? string.Empty;
@@ -32,7 +32,7 @@ public class PluginInformation
     {
         get => _attribute.Id;
     }
-    
+
     public Assembly Assembly { get; internal set; }
 
     public string Name { get; }
@@ -48,7 +48,7 @@ public class PluginInformation
     public Type PluginType { get; }
 
     public IPlugin? Instance { get; set; }
-    
+
 
     public override string ToString()
     {

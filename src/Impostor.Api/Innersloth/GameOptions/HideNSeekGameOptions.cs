@@ -1,5 +1,3 @@
-using System;
-
 namespace Impostor.Api.Innersloth.GameOptions;
 
 public class HideNSeekGameOptions : IGameOptions
@@ -67,8 +65,8 @@ public class HideNSeekGameOptions : IGameOptions
     public uint SeekerPlayerId { get; set; } = 0xFFFFFFFF;
 
     public float MaxPingTime { get; set; } = 6f;
-    
-    public byte Tag { get; set; } = 0;
+
+    public byte Tag { get; set; }
 
     /// <inheritdoc />
     public byte Version { get; }
@@ -132,7 +130,7 @@ public class HideNSeekGameOptions : IGameOptions
         writer.Write(SeekerPlayerId);
         writer.Write(MaxPingTime);
         writer.Write(CrewmateTimeInVent);
-        
+
         if (Version >= 9)
         {
             writer.Write(Tag);
@@ -142,13 +140,6 @@ public class HideNSeekGameOptions : IGameOptions
         {
             IGameOptions.ThrowUnknownVersion<HideNSeekGameOptions>(Version);
         }
-    }
-
-    public static HideNSeekGameOptions Deserialize(IMessageReader reader, byte version)
-    {
-        var options = new HideNSeekGameOptions(version);
-        options.Deserialize(reader);
-        return options;
     }
 
     public void Deserialize(IMessageReader reader)
@@ -183,7 +174,7 @@ public class HideNSeekGameOptions : IGameOptions
         SeekerPlayerId = reader.ReadUInt32();
         MaxPingTime = reader.ReadSingle();
         CrewmateTimeInVent = reader.ReadSingle();
-        
+
         if (Version >= 9)
         {
             Tag = reader.ReadByte();
@@ -193,5 +184,12 @@ public class HideNSeekGameOptions : IGameOptions
         {
             IGameOptions.ThrowUnknownVersion<HideNSeekGameOptions>(Version);
         }
+    }
+
+    public static HideNSeekGameOptions Deserialize(IMessageReader reader, byte version)
+    {
+        var options = new HideNSeekGameOptions(version);
+        options.Deserialize(reader);
+        return options;
     }
 }

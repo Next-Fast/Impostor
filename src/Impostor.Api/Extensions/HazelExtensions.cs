@@ -34,8 +34,8 @@ public static class HazelExtensions
 
         await connection.DisconnectAsync(reason.ToString(), writer);
     }
-    
-    
+
+
     public static GameVersion ReadGameVersion(this IMessageReader reader)
     {
         return new GameVersion(reader.ReadInt32());
@@ -56,8 +56,8 @@ public static class HazelExtensions
 
         return new Vector2(Mathf.Lerp(-Range, Range, x), Mathf.Lerp(-Range, Range, y));
     }
-    
-    
+
+
     public static void Write(this IMessageWriter writer, GameVersion value)
     {
         writer.Write(value.Value);

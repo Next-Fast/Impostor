@@ -7,7 +7,10 @@ namespace HttpDebugPlugin;
 [ImpostorPlugin("SelfHttpMatchmaker.Impostor.Next")]
 public class HttpDebugPlugin : IPlugin, IHttpPluginStartup
 {
-    public bool AssemblyPart => true;
+    public bool AssemblyPart
+    {
+        get => true;
+    }
 
     public void ConfigureHost(IWebHostBuilder host)
     {

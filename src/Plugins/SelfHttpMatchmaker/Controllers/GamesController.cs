@@ -1,12 +1,8 @@
-using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Impostor.Api.Config;
 using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
 using Impostor.Api.Innersloth;
-using Impostor.Api.Net.Manager;
-using Impostor.Api.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SelfHttpMatchmaker.Types;
@@ -24,7 +20,6 @@ public sealed class GamesController(
     IOptions<ExtensionServerConfig> config,
     IHostServer hostServer) : ControllerBase
 {
-    
     /// <summary>
     ///     Get a list of active games.
     /// </summary>

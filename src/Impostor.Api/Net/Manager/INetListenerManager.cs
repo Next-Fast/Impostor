@@ -9,4 +9,3 @@ public interface INetListenerManager
 
     public event Action<INetListenerManager, ListenerConfig> OnDisposeListener;
 }
-

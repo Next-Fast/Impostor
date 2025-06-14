@@ -11,9 +11,8 @@ namespace SelfHttpMatchmaker.Controllers;
 [ApiController]
 public class FiltersController(IGameManager gameManager, IHostServer hostServer) : ControllerBase
 {
-
     private static readonly List<Filters> AllFilters = Enum.GetValues<Filters>().ToList();
-    
+
     [HttpGet("api/filters")]
     public IActionResult GetFilters()
     {
@@ -45,7 +44,7 @@ public class FiltersController(IGameManager gameManager, IHostServer hostServer)
         {
             return BadRequest("No Get filter");
         }
-        
+
         var set = JsonSerializer.Deserialize<GameFiltersList>(content)?.FilterSets[0];
 
         if (set == null)
@@ -56,7 +55,8 @@ public class FiltersController(IGameManager gameManager, IHostServer hostServer)
         var mode = set.GameMode;
 
         var publicGames = gameManager.Games.Where(game => game.IsPublic).ToList();
-        var matchingGames = publicGames.Where(game => game.Options.GameMode == mode && FilterGame(game, set.Filters)).ToList();
+        var matchingGames = publicGames.Where(game => game.Options.GameMode == mode && FilterGame(game, set.Filters))
+            .ToList();
         var games = matchingGames.Select(game => GameListing.FromV2(game, hostServer.Ip, hostServer.Port)).ToList();
         var res = new FindGamesListFilteredResponse
         {
@@ -75,5 +75,4 @@ public class FiltersController(IGameManager gameManager, IHostServer hostServer)
         // TODO: Add filter
         return true;
     }
-    
 }
