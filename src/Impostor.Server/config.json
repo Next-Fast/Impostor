@@ -12,12 +12,6 @@
       }
     ]
   },
-  "ExtensionServer": {
-    "Enabled": true,
-    "ListenIp": "127.0.0.1",
-    "ListenPort": 25000,
-    "EnabledHttpApi": true
-  },
   "AntiCheat": {
     "Enabled": false,
     "BanIpFromGame": true,

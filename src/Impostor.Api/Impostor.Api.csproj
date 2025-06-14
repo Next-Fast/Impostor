@@ -25,10 +25,10 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2025.1.0-eap1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.3" />
-    <PackageReference Include="NextFast.Hazel.Abstractions" Version="1.0.2-ci.11" />
-    <PackageReference Include="Serilog" Version="4.2.1-dev-02340"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.6" />
+    <PackageReference Include="NextFast.Hazel.Abstractions" Version="1.0.2-ci.13" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
 
     <ProjectReference Include="..\Impostor.Api.Generator\Impostor.Api.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <AdditionalFiles Include="Innersloth/Data/**/*.json"/>

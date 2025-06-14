@@ -49,7 +49,6 @@ public class PluginInformation
 
     public IPlugin? Instance { get; set; }
     
-    public bool AssemblyPart { get; internal set; }
 
     public override string ToString()
     {

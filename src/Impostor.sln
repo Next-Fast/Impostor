@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SelfHttpMatchmaker", "Plugi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCodePlugin", "Plugins\GameCodePlugin\GameCodePlugin.csproj", "{F19C0CC2-55FE-41D9-9372-8361EAE1B356}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheckUpdateStarter", "CheckUpdateStarter\CheckUpdateStarter.csproj", "{EEFC045B-EF04-4556-B14D-46641C14C5FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpDebugPlugin", "Plugins\HttpDebugPlugin\HttpDebugPlugin.csproj", "{37AD539A-4644-4171-84DD-8E0370CC452D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,14 +67,13 @@ Global
 		{F19C0CC2-55FE-41D9-9372-8361EAE1B356}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{F19C0CC2-55FE-41D9-9372-8361EAE1B356}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F19C0CC2-55FE-41D9-9372-8361EAE1B356}.Release|x86.ActiveCfg = Release|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Debug|x86.Build.0 = Debug|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Release|x86.ActiveCfg = Release|Any CPU
-		{EEFC045B-EF04-4556-B14D-46641C14C5FF}.Release|x86.Build.0 = Release|Any CPU
+		{37AD539A-4644-4171-84DD-8E0370CC452D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37AD539A-4644-4171-84DD-8E0370CC452D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{37AD539A-4644-4171-84DD-8E0370CC452D}.Debug|x86.Build.0 = Debug|Any CPU
+		{37AD539A-4644-4171-84DD-8E0370CC452D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37AD539A-4644-4171-84DD-8E0370CC452D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37AD539A-4644-4171-84DD-8E0370CC452D}.Release|x86.ActiveCfg = Release|Any CPU
+		{37AD539A-4644-4171-84DD-8E0370CC452D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,5 +84,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7E912EBE-52F5-4D6D-9203-38069456D9B9} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
 		{F19C0CC2-55FE-41D9-9372-8361EAE1B356} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
+		{37AD539A-4644-4171-84DD-8E0370CC452D} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
 	EndGlobalSection
 EndGlobal

@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.Loader;
 using Impostor.Api.Config;
 using Impostor.Api.Extension;
 using Impostor.Api.Extension.Plugins;
 using Impostor.Api.Plugins;
+using Impostor.Api.Utils;
 using Impostor.Server.Plugins.Informations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -47,9 +49,11 @@ internal static class PluginLoader
         return false;
     }
 
-    public static IHostBuilder UsePluginLoader(this IHostBuilder builder, PluginConfig config)
+    internal static IHostBuilder LoadPlugins(this IHostBuilder builder, PluginConfig config)
     {
-        var assemblyInfos = new List<IAssemblyInformation>();
+        try
+        {
+                    var assemblyInfos = new List<IAssemblyInformation>();
         var context = AssemblyLoadContext.Default;
 
         // Add the plugins and libraries.
@@ -140,56 +144,99 @@ internal static class PluginLoader
         }
 
         AllPluginLoad = LoadOrderPlugins(plugins);
-
-        foreach (var plugin in AllPluginLoad)
-        {
-            plugin.Startup?.ConfigureHost(builder);
-
-            if (plugin.Startup is IHttpPluginStartup { AssemblyPart: true })
-            {
-                plugin.AssemblyPart = true;
-            }
         }
-
-        builder.ConfigureServices(services =>
+        catch (Exception e)
         {
-            services.AddSingleton<PluginLoaderService>(provider =>
-                ActivatorUtilities.CreateInstance<PluginLoaderService>(provider, AllPluginLoad));
-            services.AddSingleton<IHostedService>(p => p.GetRequiredService<PluginLoaderService>());
-
-            foreach (var plugin in AllPluginLoad)
-            {
-                plugin.Startup?.ConfigureServices(services);
-            }
-        });
+            Logger.Error(e, "Failed to load plugins.");
+        }
 
         return builder;
     }
 
     internal static List<PluginInformation> AllPluginLoad = [];
 
-    internal static IMvcBuilder ConfigurePluginMvc(this IMvcBuilder builder)
+    internal static IHostBuilder ConfigurePluginService(this IHostBuilder builder, PluginConfig config)
     {
-        foreach (var plugin in AllPluginLoad.Where(n => n.AssemblyPart))
+        try
         {
-            builder.AddApplicationPart(plugin.Assembly);
+            var enableHttp = false;
+            var enablePart = false;
+            var httpPluginStartup = new List<(IHttpPluginStartup, PluginInformation)>();
+            foreach (var plugin in AllPluginLoad)
+            {
+                plugin.Startup?.ConfigureHost(builder);
+
+                if (plugin.Startup is IHttpPluginStartup startup)
+                {
+                    enableHttp = true;
+                    httpPluginStartup.Add((startup, plugin));
+                
+                    if (startup.AssemblyPart)
+                    {
+                        enablePart = true;
+                    }
+                }
+            }
+
+            builder.ConfigureServices(services =>
+            {
+                services.AddSingleton<PluginLoaderService>(provider =>
+                    ActivatorUtilities.CreateInstance<PluginLoaderService>(provider, AllPluginLoad));
+                services.AddSingleton<IHostedService>(p => p.GetRequiredService<PluginLoaderService>());
+
+                foreach (var plugin in AllPluginLoad)
+                {
+                    plugin.Startup?.ConfigureServices(services);
+                }
+            });
+        
+            if (enableHttp)
+            { 
+                builder.ConfigureWebHostDefaults(hostBuilder =>
+                {
+                    hostBuilder.ConfigureServices((host, services) =>
+                    {
+                        if (enablePart)
+                        {
+                            var mvcBuilder = services.AddControllers();
+                            foreach (var (_, info) in httpPluginStartup)
+                            {
+                                mvcBuilder.AddApplicationPart(info.Assembly);
+                            }
+                        }
+                    });
+
+                    hostBuilder.ConfigureKestrel(options =>
+                    {
+                        options.Listen(IPAddress.Parse(config.HttpIp.ResolveIp()), config.HttpPort);
+                    });
+
+                    hostBuilder.Configure((builderContext, applicationBuilder) =>
+                    {
+                        foreach (var (startup, _) in httpPluginStartup)
+                        {
+                            startup.ConfigureHost(hostBuilder);
+                            startup.ConfigureWebApplication(applicationBuilder);
+                        }
+
+                        if (enablePart)
+                        {
+                            applicationBuilder.UseRouting();
+                            applicationBuilder.UseEndpoints(endpoint =>
+                            {
+                                endpoint.MapControllers();
+                            });
+                        }
+                    });
+                }); 
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "failed to Configure Plugin Service");
         }
         
         return builder;
-    }
-
-    public static void ConfigurePluginWeb(this IApplicationBuilder app, IWebHostBuilder webHostBuilder)
-    {
-        foreach (var pluginInfo in AllPluginLoad)
-        {
-            if (pluginInfo.Startup is not IHttpPluginStartup startup)
-            {
-                continue;
-            }
-
-            startup.ConfigureHost(webHostBuilder);
-            startup.ConfigureWebApplication(app);
-        }
     }
 
     private static List<PathCheckInfo> CheckPaths(this IEnumerable<string> paths)

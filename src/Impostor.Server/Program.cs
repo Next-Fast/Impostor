@@ -1,14 +1,9 @@
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Text;
 using Impostor.Api.Config;
 using Impostor.Api.Events.Managers;
-using Impostor.Api.Extension;
 using Impostor.Api.Extension.Commands;
 using Impostor.Api.Extension.Messages;
 using Impostor.Api.Extension.Utils;
@@ -17,29 +12,20 @@ using Impostor.Api.Games.Managers;
 using Impostor.Api.Net.Manager;
 using Impostor.Api.Utils;
 using Impostor.Server.Commands;
-using Impostor.Server.Controllers;
 using Impostor.Server.Events;
 using Impostor.Server.Events.Player;
-using Impostor.Server.Hubs;
 using Impostor.Server.Net;
 using Impostor.Server.Net.Factories;
 using Impostor.Server.Net.Manager;
 using Impostor.Server.Plugins;
 using Impostor.Server.Utils;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using Next.Hazel.Extensions;
 using Serilog;
 using Serilog.Events;
 using Serilog.Settings.Configuration;
-using Scalar.AspNetCore;
 
 namespace Impostor.Server;
 
@@ -79,7 +65,7 @@ internal static class Program
         return index + 1 < args.Length ? args[index + 1] : null;
     }
 
-    private static IConfiguration CreateConfiguration(string[] args)
+    private static IConfiguration CreateBaseConfiguration(string[] args)
     {
         var configurationBuilder = new ConfigurationBuilder();
 
@@ -93,30 +79,43 @@ internal static class Program
 
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
-        var configuration = CreateConfiguration(args)
+        var configuration = CreateBaseConfiguration(args)
             .GetConfig<ServerConfig>(ServerConfig.Section, out var serverConfig)
-            .GetConfig<ExtensionServerConfig>(ExtensionServerConfig.Section, out var extensionConfig)
             .GetConfig<PluginConfig>(PluginConfig.Section, out var pluginConfig);
 
         var hostBuilder = Host.CreateDefaultBuilder(args)
-            .ConfigureServer(configuration, serverConfig)
-            .ConfigureExtension(extensionConfig)
+            .LoadPlugins(pluginConfig)
+            .ConfigureConfiguration(configuration)
+            .ConfigureService(serverConfig)
+            .ConfigurePluginService(pluginConfig)
             .ConfigureLog(serverConfig)
             .UseContentRoot(serverConfig.RootPath ?? Directory.GetCurrentDirectory())
             .UseEnvironment(serverConfig.Env ?? DotnetUtils.Environment)
-            .UsePluginLoader(pluginConfig)
             .UseConsoleLifetime();
 
         return hostBuilder;
     }
 
-    private static IHostBuilder ConfigureServer(this IHostBuilder builder, IConfiguration configuration,
+    private static IHostBuilder ConfigureConfiguration(this IHostBuilder builder, IConfiguration baseConfiguration)
+    {
+        var pluginBuilder = new ConfigurationBuilder();
+
+        foreach (var plugin in PluginLoader.AllPluginLoad)
+        {
+            plugin.Startup?.ConfigureConfiguration(pluginBuilder);
+        }
+
+        return builder.ConfigureAppConfiguration(configurationBuilder =>
+        {
+            configurationBuilder.AddConfiguration(baseConfiguration);
+            configurationBuilder.AddConfiguration(pluginBuilder.Build());
+        });
+    }
+
+    private static IHostBuilder ConfigureService(this IHostBuilder builder,
         ServerConfig config)
     {
-        builder.ConfigureAppConfiguration(configurationBuilder =>
-            {
-                configurationBuilder.AddConfiguration(configuration);
-            })
+        builder
             .ConfigureServices((host, services) =>
             {
                 services
@@ -128,11 +127,9 @@ internal static class Program
                     .ConfigureSection<CompatibilityConfig>(host.Configuration, CompatibilityConfig.Section)
                     .ConfigureSection<ServerConfig>(host.Configuration, ServerConfig.Section)
                     .ConfigureSection<TimeoutConfig>(host.Configuration, TimeoutConfig.Section)
-                    .ConfigureSection<PluginConfig>(host.Configuration, PluginConfig.Section)
-                    .ConfigureSection<ExtensionServerConfig>(host.Configuration, ExtensionServerConfig.Section);
+                    .ConfigureSection<PluginConfig>(host.Configuration, PluginConfig.Section);
 
                 services
-                    .AddSingleton(WebHub.WebSink.Sink)
                     .AddSingleton<ClientAuthManager>()
                     .AddSingleton<IMessageWriterProvider, MessageWriterProvider>()
                     .AddSingleton<IGameCodeFactory, GameCodeFactory>()
@@ -152,11 +149,6 @@ internal static class Program
                     services.AddHostedService<ConsoleCommandService>();
                 }
 
-                if (config.EnableNextApi)
-                {
-                    services.AddHostedService<NetApiService>();
-                }
-
                 services.AddHostedService<StarterService>();
             });
         return builder;
@@ -173,7 +165,6 @@ internal static class Program
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .LoggerSet(serverConfig)
-                .WriteTo.Sink(WebHub.WebSink.Sink, serverConfig.LogLevel)
                 .ReadFrom.Configuration(context.Configuration,
                     new ConfigurationReaderOptions(ConfigurationAssemblySource.AlwaysScanDllFiles));
 
@@ -209,157 +200,7 @@ internal static class Program
             _ => config,
         };
     }
-
-    internal static string CurrentUuid = Guid.NewGuid().ToString();
-    private static IHostBuilder ConfigureExtension(this IHostBuilder builder, ExtensionServerConfig config)
-    {
-        if (!config.Enabled)
-        {
-            return builder;
-        }
-
-        Log.Information("Enable Server Extension");
-        return builder.ConfigureWebHostDefaults(hostBuilder =>
-        {
-            if (config.EnabledSpa)
-            {
-                hostBuilder.UseWebRoot(config.SpaDirectory);
-            }
-            
-            hostBuilder.ConfigureKestrel(options =>
-            {
-                Log.Information("Http Listen {ip} {port}", config.ListenIp, config.ListenPort);
-                options.Listen(IPAddress.Parse(config.ListenIp.ResolveIp()), config.ListenPort);
-            });
-            
-            hostBuilder.ConfigureServices((host,services) =>
-            {
-                if (config.EnabledSignalR)
-                {
-                    services.AddSignalR();
-                }
-                
-                if (config.EnabledHttpApi)
-                {
-                    services
-                        .AddControllers()
-                        .ConfigurePluginMvc();
-
-                    if (config.UseAuth)
-                    {
-                        services
-                            .AddAuthentication()
-                            .AddJwtBearer(options =>
-                            { 
-                                options.TokenValidationParameters = new TokenValidationParameters
-                                {
-                                    ValidateIssuer = false,
-                                    ValidateAudience = false,
-                                    ValidateIssuerSigningKey = true,
-                                    ValidateLifetime = true,
-                                    IssuerSigningKey =
-                                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(CurrentUuid)),
-                                };
-                            })
-                            .Services
-                            .AddSingleton<JwtSecurityTokenHandler>();
-                    }
-
-                    if (host.HostingEnvironment.IsDevelopment())
-                    {
-                        services.AddOpenApi();
-                    }
-                }
-
-                if (config.EnabledWebSocket)
-                {
-                    services.AddWebSockets(option =>
-                    {
-                        option.KeepAliveTimeout = TimeSpan.FromSeconds(config.WebSocketTimeout);
-                        option.KeepAliveInterval = TimeSpan.FromSeconds(config.WebSocketInterval);
-                    });
-                }
-
-                if (config.EnabledSpa)
-                {
-                    services.AddSpaStaticFiles(configuration =>
-                    {
-                        configuration.RootPath = config.SpaDirectory;
-                    });
-                }
-            });
-
-
-            hostBuilder.Configure((builderContext,applicationBuilder) =>
-            {
-                var isDev = builderContext.HostingEnvironment.IsDevelopment();
-                
-                applicationBuilder.ConfigurePluginWeb(hostBuilder);
-
-                if (config is { EnabledHttpApi: true, UseAuth: true })
-                {
-                    applicationBuilder
-                        .UseAuthentication()
-                        .UseAuthorization();
-                }
-
-                if (config.EnabledWebSocket)
-                {
-                    Log.Information("Enable Websocket");
-                    applicationBuilder.UseWebSockets();
-                }
-                
-                if (config.EnabledSpa)
-                {
-                    Log.Information("Enable Spa");
-                    applicationBuilder.Map("/web", webBuilder =>
-                    {
-                        if (isDev)
-                        {
-                            webBuilder.UseSpa(spa =>
-                            {
-                                spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
-                            });
-                        }
-
-                        if (isDev || !Directory.Exists(config.SpaDirectory))
-                        {
-                            return;
-                        }
-                        
-                        webBuilder.UseSpaStaticFiles();
-                        webBuilder.UseSpa(configuration =>
-                        {
-                        });
-                    });
-                }
-
-                applicationBuilder.UseRouting();
-                applicationBuilder.UseEndpoints(endpoint =>
-                {
-                    if (config.EnabledSignalR)
-                    {
-                        Log.Information("Enable SignalR");
-                        endpoint.MapHub<WebHub>("/signalr/web");
-                    }
-
-                    if (config.EnabledHttpApi)
-                    {
-                        Log.Information("Enable Http Api");
-                        endpoint.MapControllers();
-
-                        if (isDev)
-                        {
-                            Log.Information("Map OpenApi and Scalar");
-                            endpoint.MapScalarApiReference();
-                            endpoint.MapOpenApi();
-                        }
-                    }
-                });
-            });
-        });
-    }
-
+    
     private static IConfiguration GetConfig<T>(this IConfiguration configuration, string section, out T result)
         where T : class, new()
     {
