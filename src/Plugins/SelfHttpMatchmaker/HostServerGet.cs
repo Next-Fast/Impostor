@@ -7,7 +7,7 @@ using SelfHttpMatchmaker.Types;
 
 namespace SelfHttpMatchmaker;
 
-public class HostServerGet(INetListenerManager listenerManager, Logger<HostServerGet> logger) : IHostServer
+public class HostServerGet(INetListenerManager listenerManager, ILogger<HostServerGet> logger) : IHostServer
 {
     private ListenerConfig? _currentConfig;
     private bool _hasAdd;

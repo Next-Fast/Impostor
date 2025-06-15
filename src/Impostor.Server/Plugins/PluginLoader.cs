@@ -178,7 +178,7 @@ internal static class PluginLoader
                 }
             }
 
-            builder.ConfigureServices(services =>
+            builder.ConfigureServices((context,services) =>
             {
                 services.AddSingleton<PluginLoaderService>(provider =>
                     ActivatorUtilities.CreateInstance<PluginLoaderService>(provider, AllPluginLoad));
@@ -186,7 +186,7 @@ internal static class PluginLoader
 
                 foreach (var plugin in AllPluginLoad)
                 {
-                    plugin.Startup?.ConfigureServices(services);
+                    plugin.Startup?.ConfigureServices(context, services);
                 }
             });
 
@@ -215,7 +215,6 @@ internal static class PluginLoader
                     {
                         foreach (var (startup, _) in httpPluginStartup)
                         {
-                            startup.ConfigureHost(hostBuilder);
                             startup.ConfigureWebApplication(applicationBuilder);
                         }
 

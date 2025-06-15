@@ -45,18 +45,18 @@ public class FiltersController(IGameManager gameManager, IHostServer hostServer)
             return BadRequest("No Get filter");
         }
 
-        var set = JsonSerializer.Deserialize<GameFiltersList>(content)?.FilterSets[0];
+        /*var set = JsonSerializer.Deserialize<GameFiltersList>(content)?.FilterSets[0];
 
         if (set == null)
         {
             return BadRequest("No Get filter");
         }
 
-        var mode = set.GameMode;
+        var mode = set.GameMode;*/
 
         var publicGames = gameManager.Games.Where(game => game.IsPublic).ToList();
-        var matchingGames = publicGames.Where(game => game.Options.GameMode == mode && FilterGame(game, set.Filters))
-            .ToList();
+        var matchingGames = publicGames/*.Where(game => game.Options.GameMode == mode /*&& FilterGame(game, set.Filters)#1#)
+            .ToList()*/;
         var games = matchingGames.Select(game => GameListing.FromV2(game, hostServer.Ip, hostServer.Port)).ToList();
         var res = new FindGamesListFilteredResponse
         {
@@ -70,9 +70,9 @@ public class FiltersController(IGameManager gameManager, IHostServer hostServer)
         return Ok(res);
     }
 
-    private static bool FilterGame(IGame game, List<GameFilter> filters)
+    /*private static bool FilterGame(IGame game, List<GameFilter> filters)
     {
         // TODO: Add filter
         return true;
-    }
+    }*/
 }

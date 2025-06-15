@@ -1,6 +1,8 @@
 ﻿using Impostor.Api.Extension.Plugins;
+using Impostor.Api.Extension.Utils;
 using Impostor.Api.Plugins;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SelfHttpMatchmaker.Types;
 
 namespace SelfHttpMatchmaker;
@@ -13,9 +15,9 @@ public class SelfHttpMatchmakerPlugin : IPlugin, IHttpPluginStartup
         get => true;
     }
 
-
-    public void ConfigureServices(IServiceCollection services)
+    public void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
+        services.ConfigureSection<Config>(context.Configuration, Config.Section);
         services.AddSingleton<ListingManager>();
         services.AddSingleton<IHostServer, HostServerGet>();
     }

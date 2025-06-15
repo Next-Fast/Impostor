@@ -17,7 +17,7 @@ namespace SelfHttpMatchmaker.Controllers;
 public sealed class GamesController(
     IGameManager gameManager,
     ListingManager listingManager,
-    IOptions<ExtensionServerConfig> config,
+    IOptions<Config> config,
     IHostServer hostServer) : ControllerBase
 {
     /// <summary>

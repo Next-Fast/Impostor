@@ -1,8 +1,9 @@
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace SelfHttpMatchmaker.Types;
 
-public class GameFilter
+/*public class GameFilter
 {
     public required string OptionType { get; set; }
 
@@ -87,4 +88,4 @@ public class GameFilter
 
         return null;
     }
-}
+}*/

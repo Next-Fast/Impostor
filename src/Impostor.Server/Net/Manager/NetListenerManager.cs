@@ -14,6 +14,7 @@ using Impostor.Api.Utils;
 using Impostor.Server.Events.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
+using Next.Hazel;
 using Next.Hazel.Dtls;
 using Next.Hazel.Udp;
 
@@ -37,7 +38,7 @@ internal sealed class NetListenerManager(
         return GetAvailableListenerInfo()?.Config;
     }
 
-    public event Action<INetListenerManager, ListenerConfig> OnDisposeListener;
+    public event Action<INetListenerManager, ListenerConfig>? OnDisposeListener;
 
     public void Create(ListenerConfig config, int index = 0)
     {
@@ -175,25 +176,30 @@ internal sealed class NetListenerManager(
         }
     }
 
-    public async Task StopAllAsync()
+    public Task StopAllAsync()
     {
-        foreach (var info in Listeners)
+        lock (Listeners)
         {
-            try
+            foreach (var info in Listeners)
             {
-                await StopListenerAsync(info);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(
-                    "Failed to stop listener ip:{ip} port:{port} dtl:{dtl} auth:{auth} :\n{e}",
-                    info.Config.ListenIp,
-                    info.Config.ListenPort,
-                    info.Config.IsDtl,
-                    info.Config.HasAuth,
-                    e);
+                try
+                {
+                    _ = StopListenerAsync(info);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(
+                        "Failed to stop listener ip:{ip} port:{port} dtl:{dtl} auth:{auth} :\n{e}",
+                        info.Config.ListenIp,
+                        info.Config.ListenPort,
+                        info.Config.IsDtl,
+                        info.Config.HasAuth,
+                        e);
+                }
             }
         }
+
+        return Task.CompletedTask;
     }
 
     private async ValueTask OnAuthConnectionAsync(NewConnectionEventArgs eventArgs)
@@ -250,8 +256,11 @@ internal sealed class NetListenerManager(
             await info.AuthListener.DisposeAsync();
         }
 
-        Listeners.Remove(info);
-        OnDisposeListener.Invoke(this, info.Config);
+        lock (Listeners)
+        {
+            Listeners.Remove(info);
+        }
+        OnDisposeListener?.Invoke(this, info.Config);
     }
 
     public record ListenerInfo(

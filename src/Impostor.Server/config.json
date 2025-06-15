@@ -12,6 +12,10 @@
       }
     ]
   },
+  "Plugin": {
+    "HttpIp": "127.0.0.1",
+    "HttpPort": 25000
+  },
   "AntiCheat": {
     "Enabled": false,
     "BanIpFromGame": true,

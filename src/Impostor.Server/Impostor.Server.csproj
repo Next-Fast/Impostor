@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <SelfContained>false</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
+    <OutDir>$(SolutionDir)Output\</OutDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NextFast.Hazel" Version="1.0.2-ci.16"/>
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.6"/>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6"/>
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.6"/>

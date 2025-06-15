@@ -17,11 +17,6 @@
         "resolved": "2.4.16",
         "contentHash": "8CcEuocl5/CpNs/mVf6OkzdNIVg7NzKdpZDqQZknJU7UI9Pklt7WeRl4p7/+blnI/RNM6mGFlzIFQUQ4j80FcA=="
       },
-      "BouncyCastle.Cryptography": {
-        "type": "Transitive",
-        "resolved": "2.6.0-beta.114",
-        "contentHash": "90iHboYCwJmhIGmDwwsQ+GHnipH6uhelOPSv2b24kGMWo9ZobuBCPVdy6lB+QX+lRUBIRUVQ/hsDLYIe0YaLww=="
-      },
       "JetBrains.Annotations": {
         "type": "Transitive",
         "resolved": "2025.1.0-eap1",
@@ -31,16 +26,6 @@
         "type": "Transitive",
         "resolved": "1.6.17",
         "contentHash": "Le+kehlmrlQfuDFUt1zZ2dVwrhFQtKREdKBo+rexOwaCoYP0/qpgT9tLxCsZjsgR5Itk1UKPcbgO+FyaNid/bA=="
-      },
-      "NextFast.Hazel": {
-        "type": "Transitive",
-        "resolved": "1.0.2-ci.13",
-        "contentHash": "hkeIBoUNqwyZJyyF5B9AoQtQHngEP6vNmm1YB2TJEnxe2OO1tQKmwnhkkrxIvUvbMY8dKPUaOVnLI+nzoer21w==",
-        "dependencies": {
-          "BouncyCastle.Cryptography": "2.6.0-beta.114",
-          "NextFast.Hazel.Abstractions": "1.0.2-ci.13",
-          "Serilog": "4.2.1-dev-02352"
-        }
       },
       "NextFast.Hazel.Abstractions": {
         "type": "Transitive",
@@ -63,7 +48,6 @@
       "NextImpostor.Api.Extension": {
         "type": "Project",
         "dependencies": {
-          "NextFast.Hazel": "[1.0.2-ci.13, )",
           "NextImpostor.Api": "[1.10.2-dev, )"
         }
       }

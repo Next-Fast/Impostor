@@ -7,6 +7,8 @@ public class ServerConfig
     public const string Section = "Server";
 
     public ListenerConfig[] Listeners { get; set; } = [];
+    
+    public MatchmakerConfig[] Matchmakers { get; set; } = [];
 
     public bool EnableCommands { get; set; }
     public string CommandPrefix { get; set; } = "/";

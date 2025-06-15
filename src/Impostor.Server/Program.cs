@@ -1,11 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using Impostor.Api.Config;
 using Impostor.Api.Events.Managers;
 using Impostor.Api.Extension.Commands;
-using Impostor.Api.Extension.Messages;
 using Impostor.Api.Extension.Utils;
 using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
@@ -84,14 +84,14 @@ internal static class Program
             .GetConfig<PluginConfig>(PluginConfig.Section, out var pluginConfig);
 
         var hostBuilder = Host.CreateDefaultBuilder(args)
-            .LoadPlugins(pluginConfig)
-            .ConfigureConfiguration(configuration)
-            .ConfigureService(serverConfig)
-            .ConfigurePluginService(pluginConfig)
-            .ConfigureLog(serverConfig)
             .UseContentRoot(serverConfig.RootPath ?? Directory.GetCurrentDirectory())
             .UseEnvironment(serverConfig.Env ?? DotnetUtils.Environment)
-            .UseConsoleLifetime();
+            .UseConsoleLifetime()
+            .LoadPlugins(pluginConfig)
+            .ConfigureConfiguration(configuration)
+            .ConfigureLog(serverConfig)
+            .ConfigureService(serverConfig)
+            .ConfigurePluginService(pluginConfig);
 
         return hostBuilder;
     }
@@ -131,7 +131,7 @@ internal static class Program
 
                 services
                     .AddSingleton<ClientAuthManager>()
-                    .AddSingleton<IMessageWriterProvider, MessageWriterProvider>()
+                    .AddSingleton<IMessageWriterProvider, DefaultMessageWriterProvider>()
                     .AddSingleton<IGameCodeFactory, GameCodeFactory>()
                     .AddSingleton<IEventManager, EventManager>()
                     .AddSingleton<IDateTimeProvider, RealDateTimeProvider>()
@@ -161,7 +161,11 @@ internal static class Program
             AssemblyLoadContext.Default.Resolving += LoadSerilogAssembly;
 
             loggerConfiguration
+#if DEBUG
+                .MinimumLevel.Is(LogEventLevel.Verbose)
+#else
                 .MinimumLevel.Is(serverConfig.LogLevel)
+#endif
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .LoggerSet(serverConfig)
