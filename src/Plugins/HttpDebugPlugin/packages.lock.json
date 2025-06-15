@@ -29,8 +29,8 @@
       },
       "NextFast.Hazel.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.0.2-ci.13",
-        "contentHash": "+95Q4/TgSW0Rm+yJwiedi4sw6Z7HO0LfuEY0MwD0v9VT8tS5p7nuXi7o3mfE7g7dQv1seQb6kpJ4p25fxwnaMg=="
+        "resolved": "1.0.2-ci.16",
+        "contentHash": "ojMqBrsZq3KaRO59EHG3JbdOrLfbEVt9QAHbScMG1OZ6e8glaQ8eOHp4BwkHAePr/mYWk61dSTqdVA5YlBHBUw=="
       },
       "Serilog": {
         "type": "Transitive",
@@ -41,14 +41,14 @@
         "type": "Project",
         "dependencies": {
           "JetBrains.Annotations": "[2025.1.0-eap1, )",
-          "NextFast.Hazel.Abstractions": "[1.0.2-ci.13, )",
+          "NextFast.Hazel.Abstractions": "[1.0.2-ci.16, )",
           "Serilog": "[4.3.0, )"
         }
       },
       "NextImpostor.Api.Extension": {
         "type": "Project",
         "dependencies": {
-          "NextImpostor.Api": "[1.10.2-dev, )"
+          "NextImpostor.Api": "[1.12.0-dev, )"
         }
       }
     }
