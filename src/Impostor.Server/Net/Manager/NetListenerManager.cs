@@ -129,18 +129,19 @@ internal sealed class NetListenerManager(
             return false;
         }
 
-        if (config.HasAuth || config.IsDtl)
+        if (config is { HasAuth: false, IsDtl: false })
         {
-            logger.LogWarning("Dtls and auth is not supported yet");
-
-            if (config is { PrivateKeyPath: "" } or { CertificatePath: "" })
-            {
-                logger.LogWarning("private key or certificate path is empty not use dtl and auth");
-                return false;
-            }
+            return true;
         }
 
-        return true;
+        if (config is not ({ PrivateKeyPath: "" } or { CertificatePath: "" }))
+        {
+            return true;
+        }
+
+        logger.LogWarning("private key or certificate path is empty not use dtl and auth");
+        return false;
+
     }
 
     public async Task StartAllAsync()
