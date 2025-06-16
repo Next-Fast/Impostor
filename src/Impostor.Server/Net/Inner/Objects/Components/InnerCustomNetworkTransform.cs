@@ -58,8 +58,8 @@ internal partial class InnerCustomNetworkTransform(
         }
         else
         {
-            if (!await ValidateOwnership(CheatContext.Deserialize, sender) ||
-                !await ValidateBroadcast(CheatContext.Deserialize, sender, target))
+            if (!await ValidateOwnershipAsync(CheatContext.Deserialize, sender) ||
+                !await ValidateBroadcastAsync(CheatContext.Deserialize, sender, target))
             {
                 return;
             }
@@ -84,7 +84,7 @@ internal partial class InnerCustomNetworkTransform(
     {
         if (call == RpcCalls.SnapTo)
         {
-            if (!await ValidateOwnership(call, sender))
+            if (!await ValidateOwnershipAsync(call, sender))
             {
                 return false;
             }
@@ -99,7 +99,7 @@ internal partial class InnerCustomNetworkTransform(
 
                 if (vent != null)
                 {
-                    if (!await ValidateCanVent(call, sender, playerControl.PlayerInfo))
+                    if (!await ValidateCanVentAsync(call, sender, playerControl.PlayerInfo))
                     {
                         return false;
                     }

@@ -57,8 +57,8 @@ internal abstract class InnerShipStatus : InnerNetObject, IInnerShipStatus
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
         bool initialState)
     {
-        if (!await ValidateHost(CheatContext.Deserialize, sender) ||
-            !await ValidateBroadcast(CheatContext.Deserialize, sender, target))
+        if (!await ValidateHostAsync(CheatContext.Deserialize, sender) ||
+            !await ValidateBroadcastAsync(CheatContext.Deserialize, sender, target))
         {
             return;
         }
@@ -77,7 +77,7 @@ internal abstract class InnerShipStatus : InnerNetObject, IInnerShipStatus
     public override async ValueTask<bool> HandleRpcAsync(ClientPlayer sender, ClientPlayer? target, RpcCalls call,
         IMessageReader reader)
     {
-        if (!await ValidateCmd(call, sender, target))
+        if (!await ValidateCmdAsync(call, sender, target))
         {
             return false;
         }
@@ -86,7 +86,7 @@ internal abstract class InnerShipStatus : InnerNetObject, IInnerShipStatus
         {
             case RpcCalls.CloseDoorsOfType:
             {
-                if (!await ValidateImpostor(call, sender, sender.Character!.PlayerInfo))
+                if (!await ValidateImpostorAsync(call, sender, sender.Character!.PlayerInfo))
                 {
                     return false;
                 }

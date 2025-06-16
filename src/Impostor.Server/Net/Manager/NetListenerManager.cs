@@ -49,8 +49,8 @@ internal sealed class NetListenerManager(
         }
 
         NetworkConnectionListener listener = config.IsDtl
-            ? CreateDtls(config.ListenIp, config.ListenPort + 3, ev => OnConnectionAsync(ev, true, config))
-            : CreateUdp(config.ListenIp, config.ListenPort, ev => OnConnectionAsync(ev, false, config));
+            ? CreateDtls(config.ListenIp, config.ListenPort + 3, ev => OnConnectionAsync(ev, config))
+            : CreateUdp(config.ListenIp, config.ListenPort, ev => OnConnectionAsync(ev, config));
 
         var authListener = config.HasAuth
             ? CreateDtls(config.ListenIp, config.ListenPort + 2, OnAuthConnectionAsync)
@@ -207,7 +207,14 @@ internal sealed class NetListenerManager(
     {
         AuthHandshakeC2S.Deserialize(eventArgs.HandshakeData, out var version, out var platform,
             out var matchmakerToken, out var friendCode);
-        var id = clientAuthManager.CreateAuthInfo(version, platform, matchmakerToken, friendCode);
+        var id = clientAuthManager.CreateAuthInfo(version, platform, matchmakerToken, friendCode, eventArgs.Connection.EndPoint.Address);
+        if (id == 0)
+        {
+            await eventArgs.Connection.Disconnect("Auth Info Create Failed");
+            logger.LogWarning("Auth Id is 0 {ip}", eventArgs.Connection.EndPoint.ToString());
+            return;
+        }
+        
         using var writer = MessageWriter.Get(MessageType.Reliable);
         writer.StartMessage(1);
         writer.Write(id);
@@ -216,11 +223,11 @@ internal sealed class NetListenerManager(
         await eventArgs.Connection.SendAsync(writer);
     }
 
-    private async ValueTask OnConnectionAsync(NewConnectionEventArgs eventArgs, bool isDtl, ListenerConfig config)
+    private async ValueTask OnConnectionAsync(NewConnectionEventArgs eventArgs, ListenerConfig config)
     {
         // Handshake.
         HandshakeC2S.Deserialize(
-            eventArgs.HandshakeData, isDtl,
+            eventArgs.HandshakeData, config.IsDtl,
             out var clientVersion, out var name,
             out var language, out var chatMode,
             out var platformSpecificData, out var matchmakerToken,
@@ -229,9 +236,26 @@ internal sealed class NetListenerManager(
 
         logger.LogInformation(
             "Has New Connection Ip:{ip} isDtl:{dtl} Name:{name} Token:{token} FriendCode:{code} LastId:{Id}",
-            eventArgs.Connection.EndPoint.ToString(), isDtl, name, matchmakerToken, friendCode, lastId);
-
+            eventArgs.Connection.EndPoint.ToString(), config.IsDtl, name, matchmakerToken, friendCode, lastId);
+        
         var connection = new HazelConnection(eventArgs.Connection, connectionLogger);
+        
+        if (config is { IsDtl: false, HasAuth: true })
+        {
+            if (lastId == 0 || !clientAuthManager.TryGetAuthInfo(lastId, out var info))
+            { 
+                await connection.DisconnectAsync("Auth is required");
+                logger.LogWarning("Auth Is required {ip}", eventArgs.Connection.EndPoint.ToString());
+                return;
+            }
+
+            if (!info.TargetIp.Equals(eventArgs.Connection.EndPoint.Address))
+            {
+                await connection.DisconnectAsync("Auth IP And Connection IP Not Same");
+                logger.LogWarning("Auth IP And Connection IP Not Same {ip}", eventArgs.Connection.EndPoint.ToString());
+                return;
+            }
+        }
 
         await eventManager.CallAsync(new ClientConnectionEvent(connection, eventArgs.HandshakeData));
 

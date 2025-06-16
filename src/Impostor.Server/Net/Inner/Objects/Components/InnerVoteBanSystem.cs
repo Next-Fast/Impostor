@@ -32,7 +32,7 @@ internal class InnerVoteBanSystem : InnerNetObject, IInnerVoteBanSystem
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
         bool initialState)
     {
-        if (!await ValidateHost(CheatContext.Deserialize, sender))
+        if (!await ValidateHostAsync(CheatContext.Deserialize, sender))
         {
             return;
         }
