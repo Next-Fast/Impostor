@@ -8,7 +8,11 @@ public interface IPluginStartup
 {
     void ConfigureHost(IHostBuilder host) { }
 
-    void ConfigureServices(HostBuilderContext context, IServiceCollection services) => ConfigureServices(services);
+    void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+    {
+        ConfigureServices(services);
+    }
+
     void ConfigureServices(IServiceCollection services) { }
 
     void ConfigureConfiguration(IConfigurationBuilder config) { }

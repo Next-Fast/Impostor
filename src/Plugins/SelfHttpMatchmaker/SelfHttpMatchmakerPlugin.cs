@@ -16,6 +16,8 @@ public class SelfHttpMatchmakerPlugin(IOptions<SelfHttpConfig> config) : IPlugin
     public ValueTask EnableAsync()
     {
         TokenUtils.TokenAuthEnabled = config.Value.EnableMatchmakerTokenAuth;
+        TokenUtils.Token = config.Value.Token;
+        TokenUtils.TokenExpiresTime = TimeSpan.FromMinutes(config.Value.TokenExpiresMinutes);
         return ValueTask.CompletedTask;
     }
 }
@@ -44,7 +46,7 @@ public class SelfHttpMatchmakerStartup : IHttpPluginStartup
     {
         get => true;
     }
-    
+
     public void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.ConfigureSection<SelfHttpConfig>(context.Configuration, SelfHttpConfig.Section);

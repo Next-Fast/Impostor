@@ -29,7 +29,8 @@ internal abstract partial class InnerNetObject
         return !await sender.Client.ReportCheatAsync(context, CheatCategory.MustBeHost, "Failed host check");
     }
 
-    protected async ValueTask<bool> ValidateTargetAsync(CheatContext context, IClientPlayer sender, IClientPlayer? target)
+    protected async ValueTask<bool> ValidateTargetAsync(CheatContext context, IClientPlayer sender,
+        IClientPlayer? target)
     {
         if (target != null)
         {
@@ -39,7 +40,8 @@ internal abstract partial class InnerNetObject
         return !await sender.Client.ReportCheatAsync(context, CheatCategory.Target, "Failed target check");
     }
 
-    protected async ValueTask<bool> ValidateBroadcastAsync(CheatContext context, IClientPlayer sender, IClientPlayer? target)
+    protected async ValueTask<bool> ValidateBroadcastAsync(CheatContext context, IClientPlayer sender,
+        IClientPlayer? target)
     {
         if (target == null)
         {
@@ -64,7 +66,8 @@ internal abstract partial class InnerNetObject
     {
         if (playerInfo == null)
         {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject, "Couldn't check if Impostor, playerInfo not set"))
+            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject,
+                    "Couldn't check if Impostor, playerInfo not set"))
             {
                 return false;
             }
@@ -85,7 +88,8 @@ internal abstract partial class InnerNetObject
     {
         if (playerInfo == null)
         {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject, "Couldn't check if can vent, playerInfo not set"))
+            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject,
+                    "Couldn't check if can vent, playerInfo not set"))
             {
                 return false;
             }
@@ -101,12 +105,14 @@ internal abstract partial class InnerNetObject
         return true;
     }
 
-    protected async ValueTask<bool> ValidateRoleAsync(CheatContext context, IClientPlayer sender, InnerPlayerInfo? playerInfo,
+    protected async ValueTask<bool> ValidateRoleAsync(CheatContext context, IClientPlayer sender,
+        InnerPlayerInfo? playerInfo,
         RoleTypes role)
     {
         if (playerInfo == null)
         {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject, "Couldn't check if role, playerInfo not set"))
+            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject,
+                    "Couldn't check if role, playerInfo not set"))
             {
                 return false;
             }

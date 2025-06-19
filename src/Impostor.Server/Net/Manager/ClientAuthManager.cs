@@ -26,7 +26,7 @@ public class ClientAuthManager(ILogger<ClientAuthManager> logger, IEventManager 
             {
                 break;
             }
-            
+
             if (TryGetNextId(out var id))
             {
                 return id;
@@ -34,7 +34,7 @@ public class ClientAuthManager(ILogger<ClientAuthManager> logger, IEventManager 
 
             count++;
         }
-        
+
         logger.LogError("Failed to get next id");
         return 0;
     }
@@ -47,18 +47,19 @@ public class ClientAuthManager(ILogger<ClientAuthManager> logger, IEventManager 
             id = 0;
             return false;
         }
-        
+
         id = randomId;
         return true;
     }
-    
+
     public void RemoveAuthInfo(uint id)
     {
         AuthInfos.RemoveAll(n => n.LastId == id);
         logger.LogInformation("Remove authInfo:{id}", id);
     }
 
-    public async Task<uint> CreateAuthInfoAsync(GameVersion version, Platforms platform, string matchmakerToken, string friendCode, IPAddress targetIp)
+    public async Task<uint> CreateAuthInfoAsync(GameVersion version, Platforms platform, string matchmakerToken,
+        string friendCode, IPAddress targetIp)
     {
         if (TryGetAuthInfo(n => n.MatchmakerToken == matchmakerToken || n.FriendCode == friendCode, out var authInfo))
         {
@@ -69,7 +70,7 @@ public class ClientAuthManager(ILogger<ClientAuthManager> logger, IEventManager 
             authInfo.TargetIp = targetIp;
             return authInfo.LastId;
         }
-        
+
         var id = GetNextId();
         if (id == 0)
         {
@@ -83,17 +84,20 @@ public class ClientAuthManager(ILogger<ClientAuthManager> logger, IEventManager 
         {
             if (@event.Status.Type is EventResultType.Error)
             {
-                logger.LogError("Failed to create authInfo:{id} {version}, {platform}, {token}, {code}, {reason}", id, version, platform,
+                logger.LogError("Failed to create authInfo:{id} {version}, {platform}, {token}, {code}, {reason}", id,
+                    version, platform,
                     matchmakerToken, friendCode, @event.Status.Message);
             }
             else
             {
-                logger.LogInformation("Cancelled to create authInfo:{id} {version}, {platform}, {token}, {code}", id, version, platform,
+                logger.LogInformation("Cancelled to create authInfo:{id} {version}, {platform}, {token}, {code}", id,
+                    version, platform,
                     matchmakerToken, friendCode);
             }
+
             return 0;
         }
-        
+
         AuthInfos.Add(info);
         logger.LogInformation("Create authInfo:{id} {version}, {platform}, {token}, {code}", id, version, platform,
             matchmakerToken, friendCode);

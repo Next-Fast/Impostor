@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Impostor.Api.Events;
@@ -47,7 +46,7 @@ public class EventResultCollection(IEnumerable<IEventResult> result) : IEventRes
 public class EventTypeResult(EventResultType resultType) : IEventResult
 {
     public EventResultType Type { get; init; } = resultType;
-    
+
     public string? Message { get; set; }
 
     public static implicit operator EventResultType(EventTypeResult result)

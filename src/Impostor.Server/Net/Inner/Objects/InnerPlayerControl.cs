@@ -866,7 +866,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
             }
         }
-        
+
         PlayerInfo.CurrentOutfit.Color = color;
 
         if (_game.TryGetPlayer(OwnerId, out var player))

@@ -6,12 +6,9 @@ namespace SelfHttpMatchmaker.Types;
 [Serializable]
 public class IntGameFilter : ISubFilter
 {
-    [JsonPropertyName("FilterType")]
-    public string FilterType { get; } = "int";
+    [JsonPropertyName("AcceptedValues")] public required List<int> AcceptedValues { get; set; }
 
-    [JsonPropertyName("AcceptedValues")]
-    public required List<int> AcceptedValues { get; set; }
+    [JsonPropertyName("OptionEnum")] public required Int32OptionNames OptionEnum { get; set; }
 
-    [JsonPropertyName("OptionEnum")]
-    public required Int32OptionNames OptionEnum { get; set; }
+    [JsonPropertyName("FilterType")] public string FilterType { get; } = "int";
 }

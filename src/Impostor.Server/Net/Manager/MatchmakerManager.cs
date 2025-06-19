@@ -4,5 +4,4 @@ namespace Impostor.Server.Net.Manager;
 
 public class MatchmakerManager : IMatchmakerManager
 {
-    
 }

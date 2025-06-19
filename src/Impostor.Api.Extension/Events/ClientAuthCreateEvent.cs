@@ -7,7 +7,6 @@ public class ClientAuthCreateEvent(ClientAuthInfo authInfo) : IEvent
 {
     public ClientAuthInfo DefaultAuthInfo { get; } = authInfo;
     public EventTypeResult Status { get; set; } = new(EventResultType.Success);
-    
+
     public EventOutcome<ClientAuthInfo>? Result { get; set; }
 }
-

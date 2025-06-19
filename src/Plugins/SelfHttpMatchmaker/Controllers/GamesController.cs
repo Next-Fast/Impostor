@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Text.Json;
 using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
 using Impostor.Api.Innersloth;
@@ -75,7 +74,7 @@ public sealed class GamesController(
         {
             return BadRequest(result);
         }
-        
+
         return Ok(hostServer);
     }
 
@@ -86,7 +85,7 @@ public sealed class GamesController(
         {
             return BadRequest(result);
         }
-        
+
         var code = GameCode.From(gameId);
         var game = gameManager.Find(code);
         if (game == null)

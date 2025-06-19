@@ -14,7 +14,6 @@ using Impostor.Api.Utils;
 using Impostor.Server.Events.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
-using Next.Hazel;
 using Next.Hazel.Dtls;
 using Next.Hazel.Udp;
 
@@ -33,6 +32,8 @@ internal sealed class NetListenerManager(
 
     public Dictionary<(string, string), X509Certificate2> CachedCertificates { get; } = new();
 
+    public int CreateIndex { get; set; }
+
     public ListenerConfig? GetAvailableListener()
     {
         return GetAvailableListenerInfo()?.Config;
@@ -50,8 +51,7 @@ internal sealed class NetListenerManager(
         CreateIndex = 0;
         return this;
     }
-    
-    public int CreateIndex { get; set; }
+
     public NetListenerManager Create(ListenerConfig config)
     {
         if (!CheckConfig(config))
@@ -155,7 +155,6 @@ internal sealed class NetListenerManager(
 
         logger.LogWarning("private key or certificate path is empty not use dtl and auth");
         return false;
-
     }
 
     public async Task StartAllAsync()
@@ -221,14 +220,15 @@ internal sealed class NetListenerManager(
     {
         AuthHandshakeC2S.Deserialize(eventArgs.HandshakeData, out var version, out var platform,
             out var matchmakerToken, out var friendCode);
-        var id = await clientAuthManager.CreateAuthInfoAsync(version, platform, matchmakerToken, friendCode, eventArgs.Connection.EndPoint.Address);
+        var id = await clientAuthManager.CreateAuthInfoAsync(version, platform, matchmakerToken, friendCode,
+            eventArgs.Connection.EndPoint.Address);
         if (id == 0)
         {
             await eventArgs.Connection.Disconnect("Auth Info Create Failed");
             logger.LogWarning("Auth Id is 0 {ip}", eventArgs.Connection.EndPoint.ToString());
             return;
         }
-        
+
         using var writer = MessageWriter.Get(MessageType.Reliable);
         writer.StartMessage(1);
         writer.Write(id);
@@ -251,13 +251,13 @@ internal sealed class NetListenerManager(
         logger.LogInformation(
             "Has New Connection Ip:{ip} isDtl:{dtl} Name:{name} Token:{token} FriendCode:{code} LastId:{Id}",
             eventArgs.Connection.EndPoint.ToString(), config.IsDtl, name, matchmakerToken, friendCode, lastId);
-        
+
         var connection = new HazelConnection(eventArgs.Connection, connectionLogger);
-        
+
         if (config is { IsDtl: false, HasAuth: true })
         {
             if (lastId == 0 || !clientAuthManager.TryGetAuthInfo(lastId, out var info))
-            { 
+            {
                 await connection.DisconnectAsync("Auth is required");
                 logger.LogWarning("Auth Is required {ip}", eventArgs.Connection.EndPoint.ToString());
                 return;
@@ -299,6 +299,7 @@ internal sealed class NetListenerManager(
         {
             Listeners.Remove(info);
         }
+
         OnDisposeListener?.Invoke(this, info.Config);
     }
 

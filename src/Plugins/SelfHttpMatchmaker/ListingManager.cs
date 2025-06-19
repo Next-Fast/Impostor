@@ -96,7 +96,7 @@ public sealed class ListingManager(
             }
         }
     }
-    
+
     public IEnumerable<IGame> FindListingsV2(HttpContext ctx, GameFiltersList? filtersList, int maxListings = 10)
     {
         if (filtersList == null || filtersList.FilterSets.Count == 0)
@@ -112,7 +112,8 @@ public sealed class ListingManager(
 
         foreach (var game in gameManager.Games)
         {
-            if (!game.IsPublic || game.GameState != GameStates.NotStarted || game.PlayerCount >= game.Options.MaxPlayers)
+            if (!game.IsPublic || game.GameState != GameStates.NotStarted ||
+                game.PlayerCount >= game.Options.MaxPlayers)
             {
                 continue;
             }
@@ -139,14 +140,16 @@ public sealed class ListingManager(
                     switch (filter.OptionType)
                     {
                         case "map":
-                            if (filter.SubFilter is MapGameFilter mapFilter && ((1 << (int)game.Options.Map) & mapFilter.AcceptedValues) == 0)
+                            if (filter.SubFilter is MapGameFilter mapFilter &&
+                                ((1 << (int)game.Options.Map) & mapFilter.AcceptedValues) == 0)
                             {
                                 matchesAllFilters = false;
                             }
 
                             break;
                         case "languages":
-                            if (filter.SubFilter is LanguageFilter langFilter && game.Options.Keywords != (GameKeywords)langFilter.AcceptedValues)
+                            if (filter.SubFilter is LanguageFilter langFilter &&
+                                game.Options.Keywords != (GameKeywords)langFilter.AcceptedValues)
                             {
                                 matchesAllFilters = false;
                             }

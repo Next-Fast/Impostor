@@ -29,7 +29,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.6"/>
     <PackageReference Include="NextFast.Hazel.Abstractions" Version="1.0.2-ci.16"/>
     <PackageReference Include="Serilog" Version="4.3.0"/>
-    
+
     <ProjectReference Include="..\Impostor.Api.Generator\Impostor.Api.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
     <AdditionalFiles Include="Innersloth/Data/**/*.json"/>
     <AdditionalFiles Include="Languages/*.json"/>

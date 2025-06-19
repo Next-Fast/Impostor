@@ -11,7 +11,8 @@ namespace Impostor.Server.Utils;
 
 public static class DotnetUtils
 {
-    [field: AllowNull, MaybeNull]
+    [field: AllowNull]
+    [field: MaybeNull]
     public static string Version
     {
         get
@@ -46,11 +47,6 @@ public static class DotnetUtils
         get => IsDev ? Environments.Development : Environments.Production;
     }
 
-    public static IActionResult OkJson<T>(this T content)
-    {
-        return new OkObjectResult(JsonSerializer.Serialize(content));
-    }
-    
     public class NextCounter<T>(string name, T start) where T : class
     {
         public T StartIndex { get; } = start;
@@ -60,9 +56,9 @@ public static class DotnetUtils
 
         public Func<NextCounter<T>, T>? NextAction { get; set; }
         public Action<NextCounter<T>> OnNext { get; set; } = counter => { };
-        
+
         public ILogger? Logger { get; set; }
-        
+
         public Task Start()
         {
             CurrentIndex = StartIndex;
@@ -79,10 +75,11 @@ public static class DotnetUtils
                     CurrentIndex = null;
                     Logger?.LogWarning("NextCounter:{0} CurrentIndex Is Null", Name);
                 }
+
                 Logger?.LogDebug("NextCounter:{0} {1} {2}", Name, CurrentIndex, HasNext);
             }
-            
-            
+
+
             return Task.CompletedTask;
         }
 

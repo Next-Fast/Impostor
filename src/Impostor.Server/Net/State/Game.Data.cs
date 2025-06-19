@@ -546,7 +546,7 @@ internal partial class Game
         playerInfo.OwnerId = ServerOwned;
         playerInfo.ClientId = sender.Client.Id;
         playerInfo.PlayerId = GameNet.GameData.GetNextAvailablePlayerId();
-        
+
         // If player played a previous game, restore their colorAdd commentMore actions
         var prevColor = sender.Client.PreviousColor;
         if (prevColor.HasValue)

@@ -178,7 +178,7 @@ internal static class PluginLoader
                 }
             }
 
-            builder.ConfigureServices((context,services) =>
+            builder.ConfigureServices((context, services) =>
             {
                 services.AddSingleton<PluginLoaderService>(provider =>
                     ActivatorUtilities.CreateInstance<PluginLoaderService>(provider, AllPluginLoad));
