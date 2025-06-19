@@ -32,6 +32,5 @@
 
     <ProjectReference Include="..\Impostor.Api.Generator\Impostor.Api.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
     <AdditionalFiles Include="Innersloth/Data/**/*.json"/>
-    <AdditionalFiles Include="Languages/*.json"/>
   </ItemGroup>
 </Project>

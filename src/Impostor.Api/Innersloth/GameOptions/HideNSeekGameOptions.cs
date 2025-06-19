@@ -66,7 +66,7 @@ public class HideNSeekGameOptions : IGameOptions
 
     public float MaxPingTime { get; set; } = 6f;
 
-    public byte Tag { get; set; }
+    public GameTags Tag { get; set; }
 
     /// <inheritdoc />
     public byte Version { get; }
@@ -133,7 +133,7 @@ public class HideNSeekGameOptions : IGameOptions
 
         if (Version >= 9)
         {
-            writer.Write(Tag);
+            writer.Write((byte)Tag);
         }
 
         if (Version > LatestVersion)
@@ -177,7 +177,7 @@ public class HideNSeekGameOptions : IGameOptions
 
         if (Version >= 9)
         {
-            Tag = reader.ReadByte();
+            Tag = (GameTags)reader.ReadByte();
         }
 
         if (Version > LatestVersion)

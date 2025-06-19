@@ -143,6 +143,8 @@ public class LegacyGameOptionsData(byte version = LegacyGameOptionsData.LatestVe
     ///     Gets or sets a value indicating whether the GameOptions are the default ones.
     /// </summary>
     public bool IsDefaults { get; set; } = true;
+    
+    public GameTags Tag { get; set; } = 0;
 
     /// <summary>
     ///     Serializes this instance of GameOptionsData object to a specified BinaryWriter.

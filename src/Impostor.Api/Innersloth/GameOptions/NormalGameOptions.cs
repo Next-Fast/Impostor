@@ -104,7 +104,7 @@ public class NormalGameOptions : IGameOptions
 
     public RoleOptionsCollection RoleOptions { get; set; }
 
-    public int Tag { get; set; }
+    public GameTags Tag { get; set; }
 
     /// <inheritdoc />
     public byte Version { get; }
@@ -223,7 +223,7 @@ public class NormalGameOptions : IGameOptions
 
         if (Version >= 9)
         {
-            Tag = reader.ReadByte();
+            Tag = (GameTags)reader.ReadByte();
         }
 
         RoleOptions.Deserialize(reader);
