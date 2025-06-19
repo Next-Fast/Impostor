@@ -52,9 +52,11 @@
     "AllowVersionMixing": false
   },
   "SelfHttpMatchmaker": {
-    "RegionName": "Impostor",
-    "EnableMatchmakerTokenAuth": false,
-    "PutTokenAuth": false,
-    "EnableClientTokenAuth": false
+    "RegionName": "Xtreme.Normal(CN)",
+    "EnableMatchmakerTokenAuth": true,
+    "PutTokenAuth": true,
+    "EnableClientTokenAuth": true,
+    "Token": "TianMeng_Impostor_Server_Token",
+    "TokenExpiresMinutes": 30
   }
 }

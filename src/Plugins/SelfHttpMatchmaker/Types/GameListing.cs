@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using Impostor.Api.Games;
 using Impostor.Api.Innersloth;
+using Impostor.Api.Innersloth.GameFilters;
+using Next.Hazel;
 
 namespace SelfHttpMatchmaker.Types;
 

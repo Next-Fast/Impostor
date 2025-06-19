@@ -11,21 +11,21 @@ namespace Impostor.Server.Utils;
 
 public static class DotnetUtils
 {
-    [field: AllowNull]
-    [field: MaybeNull]
+
+    private static string? _version;
     public static string Version
     {
         get
         {
-            if (field != null)
+            if (_version != null)
             {
-                return field;
+                return _version;
             }
 
             var attribute = typeof(DotnetUtils).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            field = attribute != null ? attribute.InformationalVersion : "UNKNOWN";
-
-            return field;
+            var get = attribute != null ? attribute.InformationalVersion : "UNKNOWN";
+            _version = get;
+            return get;
         }
     }
 
