@@ -41,7 +41,7 @@ public class ClientAuthManager(ILogger<ClientAuthManager> logger, IEventManager 
 
     private bool TryGetNextId(out uint id)
     {
-        var randomId = (uint)Random.Shared.NextInt64(uint.MinValue, uint.MaxValue);
+        var randomId = (uint)Random.Shared.NextInt64(1, uint.MaxValue);
         if (AuthInfos.Any(n => n.LastId == randomId))
         {
             id = 0;

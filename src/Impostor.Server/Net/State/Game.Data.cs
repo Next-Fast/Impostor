@@ -540,7 +540,7 @@ internal partial class Game
         }
 
         var playerInfo =
-            ActivatorUtilities.CreateInstance<InnerPlayerInfo>(serviceProvider);
+            ActivatorUtilities.CreateInstance<InnerPlayerInfo>(serviceProvider, this);
         playerInfo.SpawnFlags = SpawnFlags.None;
         playerInfo.NetId = _nextNetId++;
         playerInfo.OwnerId = ServerOwned;
