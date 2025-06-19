@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+
 namespace Impostor.Api.Events;
 
 public interface IEventResult;
@@ -30,11 +34,23 @@ public class EventOutcome<T>(T result) : IEventResult
     }
 }
 
-public class TypeResult(EventResultType resultType) : IEventResult
+public class EventResultCollection(IEnumerable<IEventResult> result) : IEventResult
+{
+    public List<IEventResult> Results { get; init; } = result.ToList();
+
+    public T Result<T>(int index) where T : IEventResult
+    {
+        return (T)Results[index];
+    }
+}
+
+public class EventTypeResult(EventResultType resultType) : IEventResult
 {
     public EventResultType Type { get; init; } = resultType;
+    
+    public string? Message { get; set; }
 
-    public static implicit operator EventResultType(TypeResult result)
+    public static implicit operator EventResultType(EventTypeResult result)
     {
         return result.Type;
     }

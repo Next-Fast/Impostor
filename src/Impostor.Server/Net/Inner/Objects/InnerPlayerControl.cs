@@ -183,7 +183,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc07CheckColor.Deserialize(reader, out var color);
-                return await HandleCheckColor(sender, color);
+                return await HandleCheckColorAsync(sender, color);
             }
 
             case RpcCalls.SetColor:
@@ -195,7 +195,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc08SetColor.Deserialize(reader, out _, out var color);
-                return await HandleSetColor(sender, color);
+                return await HandleSetColorAsync(sender, color);
             }
 
             case RpcCalls.SetHatStr:
@@ -207,7 +207,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc39SetHatStr.Deserialize(reader, out var hat, out var nextRpcSequenceId);
-                return await HandleSetHat(sender, hat, nextRpcSequenceId);
+                return await HandleSetHatAsync(sender, hat, nextRpcSequenceId);
             }
 
             case RpcCalls.SetSkinStr:
@@ -219,7 +219,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc40SetSkinStr.Deserialize(reader, out var skin, out var nextRpcSequenceId);
-                return await HandleSetSkin(sender, skin, nextRpcSequenceId);
+                return await HandleSetSkinAsync(sender, skin, nextRpcSequenceId);
             }
 
             case RpcCalls.SetVisorStr:
@@ -231,7 +231,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc42SetVisorStr.Deserialize(reader, out var visor, out var nextRpcSequenceId);
-                return await HandleSetVisor(sender, visor, nextRpcSequenceId);
+                return await HandleSetVisorAsync(sender, visor, nextRpcSequenceId);
             }
 
             case RpcCalls.SetNamePlateStr:
@@ -242,7 +242,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc43SetNamePlateStr.Deserialize(reader, out var namePlate, out var nextRpcSequenceId);
-                return await HandleSetNamePlate(sender, namePlate, nextRpcSequenceId);
+                return await HandleSetNamePlateAsync(sender, namePlate, nextRpcSequenceId);
             }
 
             case RpcCalls.SetLevel:
@@ -254,7 +254,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc38SetLevel.Deserialize(reader, out var level);
-                return await HandleSetLevel(sender, level);
+                return await HandleSetLevelAsync(sender, level);
             }
 
             case RpcCalls.ReportDeadBody:
@@ -278,7 +278,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc12MurderPlayer.Deserialize(reader, Game, out var murdered, out var result);
-                return await HandleMurderPlayer(sender, (InnerPlayerControl?)murdered, result);
+                return await HandleMurderPlayerAsync(sender, (InnerPlayerControl?)murdered, result);
             }
 
             case RpcCalls.SendChat:
@@ -290,7 +290,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc13SendChat.Deserialize(reader, out var message);
-                return await HandleSendChat(sender, message);
+                return await HandleSendChatAsync(sender, message);
             }
 
             case RpcCalls.StartMeeting:
@@ -302,7 +302,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc14StartMeeting.Deserialize(reader, out var targetId);
-                await HandleStartMeeting(targetId);
+                await HandleStartMeetingAsync(targetId);
                 break;
             }
 
@@ -339,7 +339,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc41SetPetStr.Deserialize(reader, out var pet, out var nextRpcSequenceId);
-                return await HandleSetPet(sender, pet, nextRpcSequenceId);
+                return await HandleSetPetAsync(sender, pet, nextRpcSequenceId);
             }
 
             case RpcCalls.SetStartCounter:
@@ -351,7 +351,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc18SetStartCounter.Deserialize(reader, out var sequenceId, out var startCounter);
-                return await HandleSetStartCounter(sender, sequenceId, startCounter);
+                return await HandleSetStartCounterAsync(sender, sequenceId, startCounter);
             }
 
             case RpcCalls.UsePlatform:
@@ -414,7 +414,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc45ProtectPlayer.Deserialize(reader, Game, out var protectTarget, out _);
-                return await HandleProtectPlayer(sender, protectTarget);
+                return await HandleProtectPlayerAsync(sender, protectTarget);
             }
 
             case RpcCalls.Shapeshift:
@@ -441,7 +441,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc47CheckMurder.Deserialize(reader, Game, out var murdered);
-                return await HandleCheckMurder(sender, (InnerPlayerControl?)murdered);
+                return await HandleCheckMurderAsync(sender, (InnerPlayerControl?)murdered);
             }
 
             case RpcCalls.CheckProtect:
@@ -540,7 +540,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc62CheckVanish.Deserialize(reader, out var maxDuration);
-                return await HandleCheckVanish(sender, maxDuration);
+                return await HandleCheckVanishAsync(sender, maxDuration);
             }
 
             case RpcCalls.StartVanish:
@@ -552,7 +552,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc63StartVanish.Deserialize(reader);
-                return await HandleStartVanish(sender);
+                return await HandleStartVanishAsync(sender);
             }
 
             case RpcCalls.CheckAppear:
@@ -565,7 +565,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc64CheckAppear.Deserialize(reader, out var shouldAnimate);
-                return await HandleCheckAppear(sender, shouldAnimate);
+                return await HandleCheckAppearAsync(sender, shouldAnimate);
             }
 
             case RpcCalls.StartAppear:
@@ -577,7 +577,7 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
 
                 Rpc65StartAppear.Deserialize(reader, out var shouldAnimate);
-                return await HandleStartAppear(sender, shouldAnimate);
+                return await HandleStartAppearAsync(sender, shouldAnimate);
             }
 
             default:
@@ -745,7 +745,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleCheckColor(ClientPlayer sender, ColorType color)
+    private async ValueTask<bool> HandleCheckColorAsync(ClientPlayer sender, ColorType color)
     {
         if (Game.GameState == GameStates.Started)
         {
@@ -770,7 +770,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleSetColor(ClientPlayer sender, ColorType color)
+    private async ValueTask<bool> HandleSetColorAsync(ClientPlayer sender, ColorType color)
     {
         if (Game.GameState == GameStates.Started)
         {
@@ -803,7 +803,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         }
         else
         {
-            if (RequestedColorId.Any())
+            if (RequestedColorId.Count != 0)
             {
                 var requested = RequestedColorId.Dequeue();
 
@@ -866,13 +866,22 @@ internal partial class InnerPlayerControl : InnerNetObject
                 }
             }
         }
-
+        
         PlayerInfo.CurrentOutfit.Color = color;
+
+        if (_game.TryGetPlayer(OwnerId, out var player))
+        {
+            player.Client.PreviousColor = color;
+        }
+        else
+        {
+            _logger.LogWarning("Tried to record color, but couldn't get player with id {PlayerId}", OwnerId);
+        }
 
         return true;
     }
 
-    private async ValueTask<bool> HandleSetHat(ClientPlayer sender, string hat, byte nextRpcSequenceId)
+    private async ValueTask<bool> HandleSetHatAsync(ClientPlayer sender, string hat, byte nextRpcSequenceId)
     {
         if (Game.GameState == GameStates.Started &&
             await sender.Client.ReportCheatAsync(RpcCalls.SetHatStr, CheatCategory.GameFlow,
@@ -887,7 +896,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleSetSkin(ClientPlayer sender, string skin, byte nextRpcSequenceId)
+    private async ValueTask<bool> HandleSetSkinAsync(ClientPlayer sender, string skin, byte nextRpcSequenceId)
     {
         if (Game.GameState == GameStates.Started &&
             await sender.Client.ReportCheatAsync(RpcCalls.SetSkinStr, CheatCategory.GameFlow,
@@ -902,7 +911,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleSetVisor(ClientPlayer sender, string visor, byte nextRpcSequenceId)
+    private async ValueTask<bool> HandleSetVisorAsync(ClientPlayer sender, string visor, byte nextRpcSequenceId)
     {
         if (Game.GameState == GameStates.Started &&
             await sender.Client.ReportCheatAsync(RpcCalls.SetVisorStr, CheatCategory.GameFlow,
@@ -917,7 +926,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleSetNamePlate(ClientPlayer sender, string namePlate, byte nextRpcSequenceId)
+    private async ValueTask<bool> HandleSetNamePlateAsync(ClientPlayer sender, string namePlate, byte nextRpcSequenceId)
     {
         if (Game.GameState == GameStates.Started &&
             await sender.Client.ReportCheatAsync(RpcCalls.SetNamePlateStr, CheatCategory.GameFlow,
@@ -932,7 +941,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleSetLevel(ClientPlayer sender, uint level)
+    private async ValueTask<bool> HandleSetLevelAsync(ClientPlayer sender, uint level)
     {
         if (Game.GameState == GameStates.Started &&
             await sender.Client.ReportCheatAsync(RpcCalls.SetLevel, CheatCategory.GameFlow,
@@ -946,7 +955,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleCheckMurder(ClientPlayer sender, InnerPlayerControl? target)
+    private async ValueTask<bool> HandleCheckMurderAsync(ClientPlayer sender, InnerPlayerControl? target)
     {
         if (!PlayerInfo.CanMurder(Game, _dateTimeProvider))
         {
@@ -1006,7 +1015,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return false;
     }
 
-    private async ValueTask<bool> HandleMurderPlayer(ClientPlayer sender, InnerPlayerControl? target,
+    private async ValueTask<bool> HandleMurderPlayerAsync(ClientPlayer sender, InnerPlayerControl? target,
         MurderResultFlags result)
     {
         if (!_game.IsHostAuthoritive)
@@ -1062,7 +1071,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleProtectPlayer(ClientPlayer sender, IInnerPlayerControl? target)
+    private async ValueTask<bool> HandleProtectPlayerAsync(ClientPlayer sender, IInnerPlayerControl? target)
     {
         if (target == null)
         {
@@ -1085,7 +1094,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleSendChat(ClientPlayer sender, string message)
+    private async ValueTask<bool> HandleSendChatAsync(ClientPlayer sender, string message)
     {
         var @event = new PlayerChatEvent(Game, sender, this, message);
         await _eventManager.CallAsync(@event);
@@ -1093,14 +1102,14 @@ internal partial class InnerPlayerControl : InnerNetObject
         return !@event.IsCancelled;
     }
 
-    private async ValueTask HandleStartMeeting(byte targetId)
+    private async ValueTask HandleStartMeetingAsync(byte targetId)
     {
         var deadPlayer = Game.GameNet.GameData!.GetPlayerById(targetId)?.Controller;
         await _eventManager.CallAsync(new PlayerStartMeetingEvent(Game, Game.GetClientPlayer(OwnerId)!, this,
             deadPlayer));
     }
 
-    private async ValueTask<bool> HandleSetPet(ClientPlayer sender, string pet, byte nextRpcSequenceId)
+    private async ValueTask<bool> HandleSetPetAsync(ClientPlayer sender, string pet, byte nextRpcSequenceId)
     {
         if (Game.GameState == GameStates.Started &&
             await sender.Client.ReportCheatAsync(RpcCalls.SetPetStr, CheatCategory.GameFlow,
@@ -1115,7 +1124,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleSetStartCounter(ClientPlayer sender, int sequenceId, sbyte startCounter)
+    private async ValueTask<bool> HandleSetStartCounterAsync(ClientPlayer sender, int sequenceId, sbyte startCounter)
     {
         if (!sender.IsHost && startCounter != -1)
         {
@@ -1134,7 +1143,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleCheckVanish(ClientPlayer sender, float maxDuration)
+    private async ValueTask<bool> HandleCheckVanishAsync(ClientPlayer sender, float maxDuration)
     {
         // TODO: Check if operation is taking place during lobby/meetings
         // TODO: Check that the player unvanished before the maximum duration is reached
@@ -1148,7 +1157,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return false;
     }
 
-    private async ValueTask<bool> HandleStartVanish(ClientPlayer sender)
+    private async ValueTask<bool> HandleStartVanishAsync(ClientPlayer sender)
     {
         if (!_game.IsHostAuthoritive)
         {
@@ -1162,7 +1171,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return true;
     }
 
-    private async ValueTask<bool> HandleCheckAppear(ClientPlayer sender, bool shouldAnimate)
+    private async ValueTask<bool> HandleCheckAppearAsync(ClientPlayer sender, bool shouldAnimate)
     {
         // If the game is host authoritive, the RPC is handled by the host, otherwise by the server
         if (_game.IsHostAuthoritive)
@@ -1174,7 +1183,7 @@ internal partial class InnerPlayerControl : InnerNetObject
         return false;
     }
 
-    private async ValueTask<bool> HandleStartAppear(ClientPlayer sender, bool shouldAnimate)
+    private async ValueTask<bool> HandleStartAppearAsync(ClientPlayer sender, bool shouldAnimate)
     {
         if (!_game.IsHostAuthoritive)
         {

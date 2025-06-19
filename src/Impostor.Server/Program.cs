@@ -142,14 +142,12 @@ internal static class Program
                     .AddRequiredSingleton<IClientManager, ClientManager>()
                     .AddRequiredSingleton<IGameManager, GameManager>()
                     .AddRequiredSingleton<ICommandManager, CommandManager>()
+                    .AddRequiredSingleton<IMatchmakerManager, MatchmakerManager>()
                     .AddRequiredSingleton<INetListenerManager, NetListenerManager>();
 
-                if (config.EnableCommands)
-                {
-                    services.AddHostedService<ConsoleCommandService>();
-                }
-
-                services.AddHostedService<StarterService>();
+                services
+                    .AddHostedService<StarterService>()
+                    .AddHostedService<ConsoleCommandService>();
             });
         return builder;
     }

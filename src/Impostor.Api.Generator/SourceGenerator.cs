@@ -72,6 +72,14 @@ public sealed class SourceGenerator : IIncrementalGenerator
             enumGenerator.Generate("TaskTypes");
             enumGenerator.Generate("RpcCalls", "Impostor.Api.Net.Inner", underlyingType: CSharpEnumUnderlyingType.Byte);
             enumGenerator.Generate("Filters", underlyingType: CSharpEnumUnderlyingType.Byte);
+            enumGenerator.Generate("BoolOptionNames", "Impostor.Api.Innersloth.GameFilters");
+            enumGenerator.Generate("ByteOptionNames", "Impostor.Api.Innersloth.GameFilters");
+            enumGenerator.Generate("CategorizedOptionNames", "Impostor.Api.Innersloth.GameFilters");
+            enumGenerator.Generate("FloatArrayOptionNames", "Impostor.Api.Innersloth.GameFilters");
+            enumGenerator.Generate("FloatOptionNames", "Impostor.Api.Innersloth.GameFilters");
+            enumGenerator.Generate("Int32ArrayOptionNames", "Impostor.Api.Innersloth.GameFilters");
+            enumGenerator.Generate("Int32OptionNames", "Impostor.Api.Innersloth.GameFilters");
+            enumGenerator.Generate("UInt32OptionNames", "Impostor.Api.Innersloth.GameFilters");
 
             var mapDataGenerator = generator.GetMapData();
             var mapNames = new[] { "Skeld", "Mira", "April", "Polus", "Airship", "Fungle" };
@@ -79,9 +87,6 @@ public sealed class SourceGenerator : IIncrementalGenerator
             {
                 mapDataGenerator.Generate(mapName);
             }
-
-            /*var languageGenerator = generator.GetLanguage();
-            languageGenerator.Generate("English");*/
         });
     }
 

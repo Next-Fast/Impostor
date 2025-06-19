@@ -1,8 +1,10 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Impostor.Api.Plugins;
 
 [AttributeUsage(AttributeTargets.Class)]
+[MeansImplicitUse]
 public class ImpostorPluginAttribute(string id) : Attribute
 {
     [Obsolete("Use (string id) constructor to avoid redundancy")]

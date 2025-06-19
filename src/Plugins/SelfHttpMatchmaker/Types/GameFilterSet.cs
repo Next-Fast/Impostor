@@ -1,11 +1,15 @@
+using System.Text.Json.Serialization;
 using Impostor.Api.Innersloth;
 
 namespace SelfHttpMatchmaker.Types;
 
-/*public class GameFilterSet
+[Serializable]
+[method: JsonConstructor]
+public class GameFilterSet(GameModes gameMode, List<GameFilter> filters)
 {
-    public GameModes GameMode { get; set; }
+    [JsonPropertyName("GameMode")]
+    public required GameModes GameMode { get; set; } = gameMode;
 
-
-    public List<GameFilter> Filters { get; set; }
-}*/
+    [JsonPropertyName("Filters")]
+    public required List<GameFilter> Filters { get; set; } = filters;
+}

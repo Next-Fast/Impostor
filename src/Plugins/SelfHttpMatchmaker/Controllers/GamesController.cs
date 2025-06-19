@@ -17,7 +17,7 @@ namespace SelfHttpMatchmaker.Controllers;
 public sealed class GamesController(
     IGameManager gameManager,
     ListingManager listingManager,
-    IOptions<Config> config,
+    IOptions<SelfHttpConfig> config,
     IHostServer hostServer) : ControllerBase
 {
     /// <summary>
@@ -32,16 +32,9 @@ public sealed class GamesController(
     public IActionResult Index(int mapId, GameKeywords lang, int numImpostors,
         [FromHeader] AuthenticationHeaderValue authorization)
     {
-        if (authorization.Scheme != "Bearer" || authorization.Parameter == null)
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out var token))
         {
-            return BadRequest();
-        }
-
-        var token =
-            JsonSerializer.Deserialize<Token>(Convert.FromBase64String(authorization.Parameter));
-        if (token == null)
-        {
-            return BadRequest();
+            return BadRequest(result);
         }
 
         var clientVersion = new GameVersion(token.Content.ClientVersion);
@@ -76,14 +69,24 @@ public sealed class GamesController(
     /// </summary>
     /// <returns>The address of this server.</returns>
     [HttpPut]
-    public IActionResult Put()
+    public IActionResult Put([FromHeader] AuthenticationHeaderValue authorization)
     {
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _) && config.Value.PutTokenAuth)
+        {
+            return BadRequest(result);
+        }
+        
         return Ok(hostServer);
     }
 
     [HttpGet("{gameId:int}")]
-    public IActionResult FindGameInfo(int gameId)
+    public IActionResult FindGameInfo(int gameId, [FromHeader] AuthenticationHeaderValue authorization)
     {
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
+        {
+            return BadRequest(result);
+        }
+        
         var code = GameCode.From(gameId);
         var game = gameManager.Find(code);
         if (game == null)

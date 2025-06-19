@@ -40,12 +40,24 @@ internal sealed class NetListenerManager(
 
     public event Action<INetListenerManager, ListenerConfig>? OnDisposeListener;
 
-    public void Create(ListenerConfig config, int index = 0)
+    public NetListenerManager CreateAll(IEnumerable<ListenerConfig> configs)
+    {
+        foreach (var config in configs)
+        {
+            Create(config);
+        }
+
+        CreateIndex = 0;
+        return this;
+    }
+    
+    public int CreateIndex { get; set; }
+    public NetListenerManager Create(ListenerConfig config)
     {
         if (!CheckConfig(config))
         {
-            logger.LogWarning("config is invalid, config: {config}", index);
-            return;
+            logger.LogWarning("config is invalid, config: {config}", CreateIndex);
+            return this;
         }
 
         NetworkConnectionListener listener = config.IsDtl
@@ -57,6 +69,8 @@ internal sealed class NetListenerManager(
             : null;
 
         Listeners.Add(SetCertificate(config, listener, authListener));
+        CreateIndex++;
+        return this;
     }
 
     private ListenerInfo SetCertificate(ListenerConfig config, NetworkConnectionListener? listener,
@@ -207,7 +221,7 @@ internal sealed class NetListenerManager(
     {
         AuthHandshakeC2S.Deserialize(eventArgs.HandshakeData, out var version, out var platform,
             out var matchmakerToken, out var friendCode);
-        var id = clientAuthManager.CreateAuthInfo(version, platform, matchmakerToken, friendCode, eventArgs.Connection.EndPoint.Address);
+        var id = await clientAuthManager.CreateAuthInfoAsync(version, platform, matchmakerToken, friendCode, eventArgs.Connection.EndPoint.Address);
         if (id == 0)
         {
             await eventArgs.Connection.Disconnect("Auth Info Create Failed");

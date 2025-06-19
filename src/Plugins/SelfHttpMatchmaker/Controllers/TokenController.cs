@@ -19,18 +19,6 @@ public sealed class TokenController : ControllerBase
     [HttpPost]
     public IActionResult GetToken([FromBody] TokenRequest request)
     {
-        var token = new Token
-        {
-            Content = new TokenPayload
-            {
-                ProductUserId = request.ProductUserId,
-                ClientVersion = request.ClientVersion,
-            },
-            Hash = TokenUtils.GetTokenHashString(),
-        };
-
-        // Wrap into a Base64 sandwich
-        var serialized = JsonSerializer.SerializeToUtf8Bytes(token);
-        return Ok(Convert.ToBase64String(serialized));
+        return Ok(request.GenerateTokenResponse());
     }
 }

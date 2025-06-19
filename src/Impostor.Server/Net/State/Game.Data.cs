@@ -540,12 +540,20 @@ internal partial class Game
         }
 
         var playerInfo =
-            (InnerPlayerInfo)ActivatorUtilities.CreateInstance(serviceProvider, typeof(InnerPlayerInfo), this);
+            ActivatorUtilities.CreateInstance<InnerPlayerInfo>(serviceProvider);
         playerInfo.SpawnFlags = SpawnFlags.None;
         playerInfo.NetId = _nextNetId++;
         playerInfo.OwnerId = ServerOwned;
         playerInfo.ClientId = sender.Client.Id;
         playerInfo.PlayerId = GameNet.GameData.GetNextAvailablePlayerId();
+        
+        // If player played a previous game, restore their colorAdd commentMore actions
+        var prevColor = sender.Client.PreviousColor;
+        if (prevColor.HasValue)
+        {
+            logger.LogTrace("Color restored to {Color}", prevColor.Value);
+            playerInfo.CurrentOutfit.Color = prevColor.Value;
+        }
 
         if (!AddNetObject(playerInfo))
         {

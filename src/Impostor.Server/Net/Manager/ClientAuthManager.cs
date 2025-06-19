@@ -3,14 +3,19 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
+using Impostor.Api.Events;
+using Impostor.Api.Events.Managers;
+using Impostor.Api.Extension.Events;
+using Impostor.Api.Extension.Net;
 using Impostor.Api.Innersloth;
 using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Manager;
 
-public class ClientAuthManager(ILogger<ClientAuthManager> logger)
+public class ClientAuthManager(ILogger<ClientAuthManager> logger, IEventManager eventManager)
 {
-    private List<AuthInfo> AuthInfos { get; } = [];
+    private List<ClientAuthInfo> AuthInfos { get; } = [];
 
     public uint GetNextId()
     {
@@ -53,58 +58,57 @@ public class ClientAuthManager(ILogger<ClientAuthManager> logger)
         logger.LogInformation("Remove authInfo:{id}", id);
     }
 
-    public uint CreateAuthInfo(GameVersion version, Platforms platform, string matchmakerToken, string friendCode, IPAddress targetIp)
+    public async Task<uint> CreateAuthInfoAsync(GameVersion version, Platforms platform, string matchmakerToken, string friendCode, IPAddress targetIp)
     {
-        var id = GetNextId();
-        if (id == 0)
-        {
-            return 0;
-        }
-        
         if (TryGetAuthInfo(n => n.MatchmakerToken == matchmakerToken || n.FriendCode == friendCode, out var authInfo))
         {
-            authInfo.LastId = id;
             authInfo.Version = version;
             authInfo.Platform = platform;
             authInfo.MatchmakerToken = matchmakerToken;
             authInfo.FriendCode = friendCode;
             authInfo.TargetIp = targetIp;
-            return id;
+            return authInfo.LastId;
+        }
+        
+        var id = GetNextId();
+        if (id == 0)
+        {
+            return 0;
         }
 
-        var info = new AuthInfo(id, version, platform, matchmakerToken, friendCode, targetIp);
+        var info = new ClientAuthInfo(id, version, platform, matchmakerToken, friendCode, targetIp);
+        var @event = new ClientAuthCreateEvent(info);
+        await eventManager.CallAsync(@event);
+        if (@event.Status.Type is EventResultType.Cancelled or EventResultType.Error)
+        {
+            if (@event.Status.Type is EventResultType.Error)
+            {
+                logger.LogError("Failed to create authInfo:{id} {version}, {platform}, {token}, {code}, {reason}", id, version, platform,
+                    matchmakerToken, friendCode, @event.Status.Message);
+            }
+            else
+            {
+                logger.LogInformation("Cancelled to create authInfo:{id} {version}, {platform}, {token}, {code}", id, version, platform,
+                    matchmakerToken, friendCode);
+            }
+            return 0;
+        }
+        
         AuthInfos.Add(info);
         logger.LogInformation("Create authInfo:{id} {version}, {platform}, {token}, {code}", id, version, platform,
             matchmakerToken, friendCode);
         return id;
     }
 
-    private bool TryGetAuthInfo(Func<AuthInfo, bool> predicate, [MaybeNullWhen(false)] out AuthInfo info)
+    private bool TryGetAuthInfo(Func<ClientAuthInfo, bool> predicate, [MaybeNullWhen(false)] out ClientAuthInfo info)
     {
         var find = AuthInfos.FirstOrDefault(predicate);
         info = find;
         return find != null;
     }
 
-    public bool TryGetAuthInfo(uint id, [MaybeNullWhen(false)] out AuthInfo info)
+    public bool TryGetAuthInfo(uint id, [MaybeNullWhen(false)] out ClientAuthInfo info)
     {
         return TryGetAuthInfo(n => n.LastId == id, out info);
-    }
-
-    public class AuthInfo(
-        uint lastId,
-        GameVersion version,
-        Platforms platform,
-        string matchmakerToken,
-        string friendCode,
-        IPAddress targetIp
-        )
-    {
-        public IPAddress TargetIp { get; set; } = targetIp;
-        public uint LastId { get; set; } = lastId;
-        public GameVersion Version { get; set; } = version;
-        public Platforms Platform { get; set; } = platform;
-        public string MatchmakerToken { get; set; } = matchmakerToken;
-        public string FriendCode { get; set; } = friendCode;
     }
 }

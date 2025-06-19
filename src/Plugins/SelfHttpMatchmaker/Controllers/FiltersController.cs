@@ -1,6 +1,7 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Web;
 using Impostor.Api.Extension.Utils;
-using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
 using Impostor.Api.Innersloth;
 using Microsoft.AspNetCore.Mvc;
@@ -9,70 +10,95 @@ using SelfHttpMatchmaker.Types;
 namespace SelfHttpMatchmaker.Controllers;
 
 [ApiController]
-public class FiltersController(IGameManager gameManager, IHostServer hostServer) : ControllerBase
+[Route("api")]
+public class FiltersController(IGameManager gameManager, ListingManager listingManager, IHostServer hostServer) : ControllerBase
 {
-    private static readonly List<Filters> AllFilters = Enum.GetValues<Filters>().ToList();
+    private static readonly List<Filters> UseFilters =
+    [
+        Filters.Tags,
+        Filters.NumImposters,
+    ];
+    
+    
 
-    [HttpGet("api/filters")]
-    public IActionResult GetFilters()
+    [HttpGet("filters")]
+    public IActionResult GetFilters([FromHeader] AuthenticationHeaderValue authorization)
     {
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
+        {
+            return BadRequest(result);
+        }
+        
         return Ok(new PermittedFilters
         {
             // TODO: Add filters
-            Filters = AllFilters,
+            Filters = UseFilters,
         });
     }
 
-    [HttpGet("api/filtertags")]
-    public IActionResult GetFilterTags()
+    [HttpGet("filtertags")]
+    public IActionResult GetFilterTags([FromQuery] string lang, [FromHeader] AuthenticationHeaderValue authorization)
     {
-        if (!Request.TryGetSingleOrDefault("lang", out var langString))
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
         {
-            return BadRequest("No Get Lang");
+            return BadRequest(result);
         }
 
-        var lang = (GameKeywords)uint.Parse(langString);
-        var filters = gameManager.GetFilterTags(lang);
+        var language = (GameKeywords)uint.Parse(lang);
+        var filters = gameManager.GetFilterTags(language);
         return Ok(filters);
     }
 
-    [HttpGet("api/games/filtered")]
-    public IActionResult GetFilteredGames()
+    [HttpGet("games/filtered")]
+    public IActionResult GetFilteredGames([FromQuery] string filter, [FromHeader] AuthenticationHeaderValue authorization)
     {
-        // TODO: Add filter
-        if (!Request.TryGetSingleOrDefault("filter", out var content))
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
         {
-            return BadRequest("No Get filter");
+            return BadRequest(result);
+        }
+        
+        if (string.IsNullOrEmpty(filter))
+        {
+            return BadRequest(new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError, "filter query para not provided")));
         }
 
-        /*var set = JsonSerializer.Deserialize<GameFiltersList>(content)?.FilterSets[0];
-
-        if (set == null)
+        try
         {
-            return BadRequest("No Get filter");
-        }
-
-        var mode = set.GameMode;*/
-
-        var publicGames = gameManager.Games.Where(game => game.IsPublic).ToList();
-        var matchingGames = publicGames/*.Where(game => game.Options.GameMode == mode /*&& FilterGame(game, set.Filters)#1#)
-            .ToList()*/;
-        var games = matchingGames.Select(game => GameListing.FromV2(game, hostServer.Ip, hostServer.Port)).ToList();
-        var res = new FindGamesListFilteredResponse
-        {
-            Games = games,
-            Metadata = new GamesListMetadata
+            var decodedFilter = HttpUtility.UrlDecode(filter);
+            var filtersList = JsonSerializer.Deserialize<GameFiltersList>(decodedFilter);
+            
+            // filterSets wont be null. It must at least have ChatFilter and LangFilter
+            // Vanilla game only builds one filterSet and InnerSloth officials only handles first one (though you can send multiple filter sets. sloths only handle the first)
+            if (filtersList == null || filtersList.FilterSets.Count != 1
+                                    || filtersList.FilterSets[0].Filters.Count < 2
+                                    || filtersList.FilterSets[0].Filters.All(x => x.OptionType != "languages") 
+                                    || filtersList.FilterSets[0].Filters.All(x => x.OptionType != "chat"))
             {
-                AllGamesCount = publicGames.Count,
-                MatchingGamesCount = matchingGames.Count,
-            },
-        };
-        return Ok(res);
-    }
+                return BadRequest(new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError, "Invaild filterSets")));
+            }
+            
+            var filteredGames = listingManager.FindListingsV2(HttpContext, filtersList);
+            var gameListings = filteredGames.Select(game => GameListing.FromV2(game, hostServer.Ip, hostServer.Port)).ToList();
 
-    /*private static bool FilterGame(IGame game, List<GameFilter> filters)
-    {
-        // TODO: Add filter
-        return true;
-    }*/
+            var response = new
+            {
+                games = gameListings,
+                metadata = new
+                {
+                    allGamesCount = gameManager.Games.Count(),
+                    matchingGamesCount = gameListings.Count,
+                },
+            };
+
+            return Ok(response);
+        }
+        catch (JsonException ex)
+        {
+            return BadRequest(new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError, "Unable to deserialize filter json" + ex)));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError, "Unknown excpetion caught in filter" + ex)));
+        }
+    }
 }
