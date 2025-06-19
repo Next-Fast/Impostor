@@ -1,6 +1,6 @@
-#addin "nuget:?package=SharpZipLib&Version=1.3.3"
+#addin "nuget:?package=&SharpZipLibVersion=1.4.2"
 #addin "nuget:?package=Cake.Compression&Version=0.3.0"
-#addin "nuget:?package=Cake.FileHelpers&Version=5.0.0"
+#addin "nuget:?package=Cake.FileHelpers&Version=7.0.0"
 
 var workflow = BuildSystem.GitHubActions.Environment.Workflow;
 var buildId = workflow.RunNumber;
@@ -30,7 +30,7 @@ else if (buildId != 0)
 //////////////////////////////////////////////////////////////////////
 
 // Remove unnecessary files for packaging.
-private void ImpostorPublish(string runtime) {
+void ImpostorPublish(string runtime) {
     var name = "Next_Impostor_Server";
     var projBuildDir = buildDir.Combine(name + "_" + runtime);
     var projBuildName = name + "_" + buildVersion + "_" + runtime;
