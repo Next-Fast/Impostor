@@ -7,21 +7,18 @@ using Microsoft.Extensions.Options;
 
 namespace Impostor.Server.Net;
 
-internal class StarterService(NetListenerManager listenerManager, IOptions<ServerConfig> serverConfigOption)
+internal class StarterService(
+    NetListenerManager listenerManager,
+    MatchmakerManager matchmakerManager,
+    IOptions<ServerConfig> serverConfigOption)
     : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var serverConfig = serverConfigOption.Value;
 
-        var index = 0;
-        foreach (var listener in serverConfig.Listeners)
-        {
-            index++;
-            listenerManager.Create(listener, index);
-        }
-
-        await listenerManager.StartAllAsync();
+        await listenerManager.CreateAll(serverConfig.Listeners)
+            .StartAllAsync();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

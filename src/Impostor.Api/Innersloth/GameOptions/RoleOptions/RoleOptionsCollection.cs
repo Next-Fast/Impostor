@@ -11,8 +11,6 @@ public class RoleOptionsCollection(byte version)
 
     public void Deserialize(IMessageReader reader)
     {
-        Roles.Clear();
-
         var count = reader.ReadPackedInt32();
         Roles.EnsureCapacity(count);
         for (var i = 0; i < count; i++)
@@ -32,7 +30,7 @@ public class RoleOptionsCollection(byte version)
                 _ => throw new ArgumentOutOfRangeException(nameof(roleType), roleType, null),
             };
 
-            Roles.Add(roleType, new RoleData(roleType, roleOptions, roleRate));
+            Roles[roleType] = new RoleData(roleType, roleOptions, roleRate);
         }
     }
 

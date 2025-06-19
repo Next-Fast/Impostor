@@ -7,7 +7,7 @@ namespace SelfHttpMatchmaker.Types;
 /// </summary>
 public sealed class TokenPayload
 {
-    private static readonly DateTime DefaultExpiryDate = new(2012, 12, 21);
+    public static readonly DateTime DefaultExpiryDate = new(2012, 12, 21);
 
     [JsonPropertyName("Puid")] public required string ProductUserId { get; init; }
 

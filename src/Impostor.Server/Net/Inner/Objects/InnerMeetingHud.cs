@@ -73,8 +73,8 @@ internal partial class InnerMeetingHud : InnerNetObject
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
         bool initialState)
     {
-        if (!await ValidateHost(CheatContext.Deserialize, sender) ||
-            !await ValidateBroadcast(CheatContext.Deserialize, sender, target))
+        if (!await ValidateHostAsync(CheatContext.Deserialize, sender) ||
+            !await ValidateBroadcastAsync(CheatContext.Deserialize, sender, target))
         {
             return;
         }
@@ -121,7 +121,7 @@ internal partial class InnerMeetingHud : InnerNetObject
         {
             case RpcCalls.CloseMeeting:
             {
-                if (!await ValidateHost(call, sender))
+                if (!await ValidateHostAsync(call, sender))
                 {
                     return false;
                 }
@@ -132,7 +132,7 @@ internal partial class InnerMeetingHud : InnerNetObject
 
             case RpcCalls.VotingComplete:
             {
-                if (!await ValidateHost(call, sender))
+                if (!await ValidateHostAsync(call, sender))
                 {
                     return false;
                 }
@@ -157,7 +157,7 @@ internal partial class InnerMeetingHud : InnerNetObject
 
             case RpcCalls.ClearVote:
             {
-                if (!await ValidateHost(call, sender))
+                if (!await ValidateHostAsync(call, sender))
                 {
                     return false;
                 }
@@ -183,7 +183,7 @@ internal partial class InnerMeetingHud : InnerNetObject
 
     private async ValueTask HandleVoteAsync(PlayerVoteArea playerState)
     {
-        if (playerState.DidVote && !playerState.IsDead)
+        if (playerState is { DidVote: true, IsDead: false })
         {
             var player = playerState.TargetPlayer.Controller!;
             await _eventManager.CallAsync(new PlayerVotedEvent(Game, Game.GetClientPlayer(player!.OwnerId)!, player,
@@ -196,14 +196,14 @@ internal partial class InnerMeetingHud : InnerNetObject
     {
         if (sender.IsHost)
         {
-            if (!await ValidateBroadcast(RpcCalls.CastVote, sender, target))
+            if (!await ValidateBroadcastAsync(RpcCalls.CastVote, sender, target))
             {
                 return false;
             }
         }
         else
         {
-            if (!await ValidateCmd(RpcCalls.CastVote, sender, target))
+            if (!await ValidateCmdAsync(RpcCalls.CastVote, sender, target))
             {
                 return false;
             }
@@ -237,7 +237,7 @@ internal partial class InnerMeetingHud : InnerNetObject
         }
     }
 
-    private KeyValuePair<byte, int> MaxPair(Dictionary<byte, int> self, out bool tie)
+    private static KeyValuePair<byte, int> MaxPair(Dictionary<byte, int> self, out bool tie)
     {
         tie = true;
         var result = new KeyValuePair<byte, int>(byte.MaxValue, int.MinValue);
@@ -280,7 +280,7 @@ internal partial class InnerMeetingHud : InnerNetObject
 
     private async ValueTask HandleVotingCompleteAsync()
     {
-        _timerToken.Cancel();
+        await _timerToken.CancelAsync();
 
         foreach (var playerVoteArea in _playerStates)
         {

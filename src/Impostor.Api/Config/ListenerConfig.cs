@@ -8,10 +8,13 @@ public class ListenerConfig
     public ushort ListenPort { get; set; } = 22023;
     public bool IsDtl { get; set; } = false;
 
+    /*public bool DynamicUdpPort { get; set; } = false;
+    public List<(int min, int max)> PortRange { get; set; } = [];*/
+
     public string PrivateKeyPath { get; set; } = string.Empty;
     public string CertificatePath { get; set; } = string.Empty;
 
     public bool HasAuth { get; set; } = false;
-    
+
     public bool IsHttps { get; set; } = false;
 }

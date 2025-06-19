@@ -1,12 +1,7 @@
-using System.Net;
 using System.Net.Http.Headers;
-using System.Text.Json;
-using Impostor.Api.Config;
 using Impostor.Api.Games;
 using Impostor.Api.Games.Managers;
 using Impostor.Api.Innersloth;
-using Impostor.Api.Net.Manager;
-using Impostor.Api.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SelfHttpMatchmaker.Types;
@@ -21,30 +16,9 @@ namespace SelfHttpMatchmaker.Controllers;
 public sealed class GamesController(
     IGameManager gameManager,
     ListingManager listingManager,
-    INetListenerManager listenerManager,
-    IOptions<ExtensionServerConfig> config) : ControllerBase
+    IOptions<SelfHttpConfig> config,
+    IHostServer hostServer) : ControllerBase
 {
-    private HostServer? _hostServer;
-
-    private HostServer HostServer
-    {
-        get
-        {
-            if (_hostServer != null)
-            {
-                return _hostServer;
-            }
-
-            _hostServer = HostServer.From(IPAddress.Parse(Listener.PublicIp.ResolveIp()), Listener.PublicPort);
-            return _hostServer;
-        }
-    }
-
-    private ListenerConfig Listener
-    {
-        get => listenerManager.GetAvailableListener() ?? throw new InvalidOperationException();
-    }
-
     /// <summary>
     ///     Get a list of active games.
     /// </summary>
@@ -57,23 +31,16 @@ public sealed class GamesController(
     public IActionResult Index(int mapId, GameKeywords lang, int numImpostors,
         [FromHeader] AuthenticationHeaderValue authorization)
     {
-        if (authorization.Scheme != "Bearer" || authorization.Parameter == null)
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out var token))
         {
-            return BadRequest();
-        }
-
-        var token =
-            JsonSerializer.Deserialize<Token>(Convert.FromBase64String(authorization.Parameter));
-        if (token == null)
-        {
-            return BadRequest();
+            return BadRequest(result);
         }
 
         var clientVersion = new GameVersion(token.Content.ClientVersion);
 
         var listings = listingManager.FindListings(HttpContext, mapId, numImpostors, lang, clientVersion);
 
-        return Ok(listings.Select(n => GameListing.From(n, HostServer.Ip, HostServer.Port)));
+        return Ok(listings.Select(n => GameListing.From(n, hostServer.Ip, hostServer.Port)));
     }
 
     /// <summary>
@@ -93,7 +60,7 @@ public sealed class GamesController(
             return NotFound(new MatchmakerResponse(new MatchmakerError(DisconnectReason.GameNotFound)));
         }
 
-        return Ok(HostServer);
+        return Ok(hostServer);
     }
 
     /// <summary>
@@ -101,14 +68,24 @@ public sealed class GamesController(
     /// </summary>
     /// <returns>The address of this server.</returns>
     [HttpPut]
-    public IActionResult Put()
+    public IActionResult Put([FromHeader] AuthenticationHeaderValue authorization)
     {
-        return Ok(HostServer);
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _) && config.Value.PutTokenAuth)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(hostServer);
     }
 
     [HttpGet("{gameId:int}")]
-    public IActionResult FindGameInfo(int gameId)
+    public IActionResult FindGameInfo(int gameId, [FromHeader] AuthenticationHeaderValue authorization)
     {
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
+        {
+            return BadRequest(result);
+        }
+
         var code = GameCode.From(gameId);
         var game = gameManager.Find(code);
         if (game == null)
@@ -116,7 +93,7 @@ public sealed class GamesController(
             return NotFound(new MatchmakerResponse(new MatchmakerError(DisconnectReason.GameNotFound)));
         }
 
-        var listing = GameListing.FromV2(game, HostServer.Ip, HostServer.Port);
+        var listing = GameListing.FromV2(game, hostServer.Ip, hostServer.Port);
         var res = new FindGameByCodeResponse
         {
             Errors = [],

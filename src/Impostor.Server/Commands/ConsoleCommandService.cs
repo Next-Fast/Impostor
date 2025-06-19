@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Impostor.Api.Config;
-using Impostor.Api.Extension;
 using Impostor.Api.Extension.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,8 +23,14 @@ public class ConsoleCommandService(
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
-        Console.OutputEncoding = Console.InputEncoding = Encoding.UTF8;
+        if (!config.Value.EnableCommands)
+        {
+            logger.LogInformation("Commands are disabled in the config");
+            return Task.CompletedTask;
+        }
 
+
+        Console.OutputEncoding = Console.InputEncoding = Encoding.UTF8;
         logger.LogInformation("Starting ConsoleCommandService");
         foreach (var command in serviceProvider.GetServices<ICommand>())
         {

@@ -5,6 +5,5 @@ namespace SelfHttpMatchmaker.Types;
 
 public class PermittedFilters
 {
-    [JsonPropertyName("filters")]
-    public List<Filters> Filters { get; set; }
+    [JsonPropertyName("filters")] public List<Filters> Filters { get; set; }
 }

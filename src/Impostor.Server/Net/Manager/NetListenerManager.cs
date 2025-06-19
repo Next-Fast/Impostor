@@ -32,23 +32,45 @@ internal sealed class NetListenerManager(
 
     public Dictionary<(string, string), X509Certificate2> CachedCertificates { get; } = new();
 
-    public void Create(ListenerConfig config, int index = 0)
+    public int CreateIndex { get; set; }
+
+    public ListenerConfig? GetAvailableListener()
+    {
+        return GetAvailableListenerInfo()?.Config;
+    }
+
+    public event Action<INetListenerManager, ListenerConfig>? OnDisposeListener;
+
+    public NetListenerManager CreateAll(IEnumerable<ListenerConfig> configs)
+    {
+        foreach (var config in configs)
+        {
+            Create(config);
+        }
+
+        CreateIndex = 0;
+        return this;
+    }
+
+    public NetListenerManager Create(ListenerConfig config)
     {
         if (!CheckConfig(config))
         {
-            logger.LogWarning("config is invalid, config: {config}", index);
-            return;
+            logger.LogWarning("config is invalid, config: {config}", CreateIndex);
+            return this;
         }
 
         NetworkConnectionListener listener = config.IsDtl
-            ? CreateDtls(config.ListenIp, config.ListenPort + 3, ev => OnConnectionAsync(ev, true, config))
-            : CreateUdp(config.ListenIp, config.ListenPort, ev => OnConnectionAsync(ev, false, config));
+            ? CreateDtls(config.ListenIp, config.ListenPort + 3, ev => OnConnectionAsync(ev, config))
+            : CreateUdp(config.ListenIp, config.ListenPort, ev => OnConnectionAsync(ev, config));
 
         var authListener = config.HasAuth
             ? CreateDtls(config.ListenIp, config.ListenPort + 2, OnAuthConnectionAsync)
             : null;
 
         Listeners.Add(SetCertificate(config, listener, authListener));
+        CreateIndex++;
+        return this;
     }
 
     private ListenerInfo SetCertificate(ListenerConfig config, NetworkConnectionListener? listener,
@@ -58,7 +80,8 @@ internal sealed class NetListenerManager(
         {
             if (File.Exists(config.CertificatePath) && File.Exists(config.PrivateKeyPath))
             {
-                logger.LogInformation("New certificate loaded: {certificatePath} {privateKeyPath}", config.CertificatePath, config.PrivateKeyPath);
+                logger.LogInformation("New certificate loaded: {certificatePath} {privateKeyPath}",
+                    config.CertificatePath, config.PrivateKeyPath);
                 var newCertificate = DtlsHelper.GetCertificate(File.ReadAllText(config.CertificatePath),
                     File.ReadAllText(config.PrivateKeyPath));
                 certificate = CachedCertificates[(config.CertificatePath, config.PrivateKeyPath)] = newCertificate;
@@ -120,18 +143,18 @@ internal sealed class NetListenerManager(
             return false;
         }
 
-        if (config.HasAuth || config.IsDtl)
+        if (config is { HasAuth: false, IsDtl: false })
         {
-            logger.LogWarning("Dtls and auth is not supported yet");
-            
-            if (config is { PrivateKeyPath: "" } or { CertificatePath: "" })
-            {
-                logger.LogWarning("private key or certificate path is empty not use dtl and auth");
-                return false;
-            }
+            return true;
         }
 
-        return true;
+        if (config is not ({ PrivateKeyPath: "" } or { CertificatePath: "" }))
+        {
+            return true;
+        }
+
+        logger.LogWarning("private key or certificate path is empty not use dtl and auth");
+        return false;
     }
 
     public async Task StartAllAsync()
@@ -167,44 +190,45 @@ internal sealed class NetListenerManager(
         }
     }
 
-    public async Task StopAllAsync()
+    public Task StopAllAsync()
     {
-        foreach (var info in Listeners)
+        lock (Listeners)
         {
-            try
+            foreach (var info in Listeners)
             {
-                if (info.Listener is null)
+                try
                 {
-                    continue;
+                    _ = StopListenerAsync(info);
                 }
-
-                await info.Listener.DisposeAsync();
-
-                if (info.AuthListener is null)
+                catch (Exception e)
                 {
-                    continue;
+                    logger.LogError(
+                        "Failed to stop listener ip:{ip} port:{port} dtl:{dtl} auth:{auth} :\n{e}",
+                        info.Config.ListenIp,
+                        info.Config.ListenPort,
+                        info.Config.IsDtl,
+                        info.Config.HasAuth,
+                        e);
                 }
-
-                await info.AuthListener.DisposeAsync();
-            }
-            catch (Exception e)
-            {
-                logger.LogError(
-                    "Failed to stop listener ip:{ip} port:{port} dtl:{dtl} auth:{auth} :\n{e}",
-                    info.Config.ListenIp,
-                    info.Config.ListenPort,
-                    info.Config.IsDtl,
-                    info.Config.HasAuth,
-                    e);
             }
         }
+
+        return Task.CompletedTask;
     }
 
     private async ValueTask OnAuthConnectionAsync(NewConnectionEventArgs eventArgs)
     {
         AuthHandshakeC2S.Deserialize(eventArgs.HandshakeData, out var version, out var platform,
             out var matchmakerToken, out var friendCode);
-        var id = clientAuthManager.CreateAuthInfo(version, platform, matchmakerToken, friendCode);
+        var id = await clientAuthManager.CreateAuthInfoAsync(version, platform, matchmakerToken, friendCode,
+            eventArgs.Connection.EndPoint.Address);
+        if (id == 0)
+        {
+            await eventArgs.Connection.Disconnect("Auth Info Create Failed");
+            logger.LogWarning("Auth Id is 0 {ip}", eventArgs.Connection.EndPoint.ToString());
+            return;
+        }
+
         using var writer = MessageWriter.Get(MessageType.Reliable);
         writer.StartMessage(1);
         writer.Write(id);
@@ -213,22 +237,39 @@ internal sealed class NetListenerManager(
         await eventArgs.Connection.SendAsync(writer);
     }
 
-    private async ValueTask OnConnectionAsync(NewConnectionEventArgs eventArgs, bool isDtl, ListenerConfig config)
+    private async ValueTask OnConnectionAsync(NewConnectionEventArgs eventArgs, ListenerConfig config)
     {
         // Handshake.
         HandshakeC2S.Deserialize(
-            eventArgs.HandshakeData, isDtl,
+            eventArgs.HandshakeData, config.IsDtl,
             out var clientVersion, out var name,
             out var language, out var chatMode,
             out var platformSpecificData, out var matchmakerToken,
             out var lastId, out var friendCode
         );
-        
+
         logger.LogInformation(
             "Has New Connection Ip:{ip} isDtl:{dtl} Name:{name} Token:{token} FriendCode:{code} LastId:{Id}",
-            eventArgs.Connection.EndPoint.ToString(), isDtl, name, matchmakerToken, friendCode, lastId);
+            eventArgs.Connection.EndPoint.ToString(), config.IsDtl, name, matchmakerToken, friendCode, lastId);
 
         var connection = new HazelConnection(eventArgs.Connection, connectionLogger);
+
+        if (config is { IsDtl: false, HasAuth: true })
+        {
+            if (lastId == 0 || !clientAuthManager.TryGetAuthInfo(lastId, out var info))
+            {
+                await connection.DisconnectAsync("Auth is required");
+                logger.LogWarning("Auth Is required {ip}", eventArgs.Connection.EndPoint.ToString());
+                return;
+            }
+
+            if (!info.TargetIp.Equals(eventArgs.Connection.EndPoint.Address))
+            {
+                await connection.DisconnectAsync("Auth IP And Connection IP Not Same");
+                logger.LogWarning("Auth IP And Connection IP Not Same {ip}", eventArgs.Connection.EndPoint.ToString());
+                return;
+            }
+        }
 
         await eventManager.CallAsync(new ClientConnectionEvent(connection, eventArgs.HandshakeData));
 
@@ -237,9 +278,29 @@ internal sealed class NetListenerManager(
             platformSpecificData);
     }
 
-    public ListenerConfig? GetAvailableListener()
+    public ListenerInfo? GetAvailableListenerInfo()
     {
-        return Listeners.FirstOrDefault()?.Config;
+        return Listeners.FirstOrDefault();
+    }
+
+    public async Task StopListenerAsync(ListenerInfo info)
+    {
+        if (info.Listener is not null)
+        {
+            await info.Listener.DisposeAsync();
+        }
+
+        if (info.AuthListener is not null)
+        {
+            await info.AuthListener.DisposeAsync();
+        }
+
+        lock (Listeners)
+        {
+            Listeners.Remove(info);
+        }
+
+        OnDisposeListener?.Invoke(this, info.Config);
     }
 
     public record ListenerInfo(

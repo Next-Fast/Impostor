@@ -25,13 +25,13 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.x
 
       - name: Run the Cake script
         uses: cake-build/cake-action@v3
         with:
-          verbosity: verbose
+          verbosity: Diagnostic
           script-path: ./build-plugin.cake
 

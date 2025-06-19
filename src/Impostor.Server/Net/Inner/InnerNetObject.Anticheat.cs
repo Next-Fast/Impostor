@@ -8,76 +8,71 @@ namespace Impostor.Server.Net.Inner;
 
 internal abstract partial class InnerNetObject
 {
-    protected async ValueTask<bool> ValidateOwnership(CheatContext context, IClientPlayer sender)
+    protected async ValueTask<bool> ValidateOwnershipAsync(CheatContext context, IClientPlayer sender)
     {
-        if (!sender.IsOwner(this))
+        if (sender.IsOwner(this))
         {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.Ownership,
-                    $"Failed ownership check on {GetType().Name}"))
-            {
-                return false;
-            }
+            return true;
         }
 
-        return true;
+        return !await sender.Client.ReportCheatAsync(context, CheatCategory.Ownership,
+            $"Failed ownership check on {GetType().Name}");
     }
 
-    protected async ValueTask<bool> ValidateHost(CheatContext context, IClientPlayer sender)
+    protected async ValueTask<bool> ValidateHostAsync(CheatContext context, IClientPlayer sender)
     {
-        if (!sender.IsHost)
+        if (sender.IsHost)
         {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.MustBeHost, "Failed host check"))
-            {
-                return false;
-            }
+            return true;
         }
 
-        return true;
+        return !await sender.Client.ReportCheatAsync(context, CheatCategory.MustBeHost, "Failed host check");
     }
 
-    protected async ValueTask<bool> ValidateTarget(CheatContext context, IClientPlayer sender, IClientPlayer? target)
-    {
-        if (target == null)
-        {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.Target, "Failed target check"))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    protected async ValueTask<bool> ValidateBroadcast(CheatContext context, IClientPlayer sender, IClientPlayer? target)
+    protected async ValueTask<bool> ValidateTargetAsync(CheatContext context, IClientPlayer sender,
+        IClientPlayer? target)
     {
         if (target != null)
         {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.Target, "Failed broadcast check"))
-            {
-                return false;
-            }
+            return true;
         }
 
-        return true;
+        return !await sender.Client.ReportCheatAsync(context, CheatCategory.Target, "Failed target check");
     }
 
-    protected async ValueTask<bool> ValidateCmd(CheatContext context, IClientPlayer sender, IClientPlayer? target)
+    protected async ValueTask<bool> ValidateBroadcastAsync(CheatContext context, IClientPlayer sender,
+        IClientPlayer? target)
     {
-        if (target == null || !target.IsHost)
+        if (target == null)
         {
-            if (await sender.Client.ReportCheatAsync(context, CheatCategory.Target, "Failed cmd check"))
+            return true;
+        }
+
+        return !await sender.Client.ReportCheatAsync(context, CheatCategory.Target, "Failed broadcast check");
+    }
+
+    protected async ValueTask<bool> ValidateCmdAsync(CheatContext context, IClientPlayer sender, IClientPlayer? target)
+    {
+        if (target is { IsHost: true })
+        {
+            return true;
+        }
+
+        return !await sender.Client.ReportCheatAsync(context, CheatCategory.Target, "Failed cmd check");
+    }
+
+    protected async ValueTask<bool> ValidateImpostorAsync(CheatContext context, IClientPlayer sender,
+        InnerPlayerInfo? playerInfo, bool value = true)
+    {
+        if (playerInfo == null)
+        {
+            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject,
+                    "Couldn't check if Impostor, playerInfo not set"))
             {
                 return false;
             }
         }
-
-        return true;
-    }
-
-    protected async ValueTask<bool> ValidateImpostor(CheatContext context, IClientPlayer sender,
-        InnerPlayerInfo playerInfo, bool value = true)
-    {
-        if (playerInfo.IsImpostor != value)
+        else if (playerInfo.IsImpostor != value)
         {
             if (await sender.Client.ReportCheatAsync(context, CheatCategory.Role, "Failed impostor check"))
             {
@@ -88,10 +83,18 @@ internal abstract partial class InnerNetObject
         return true;
     }
 
-    protected async ValueTask<bool> ValidateCanVent(CheatContext context, IClientPlayer sender,
-        InnerPlayerInfo playerInfo, bool value = true)
+    protected async ValueTask<bool> ValidateCanVentAsync(CheatContext context, IClientPlayer sender,
+        InnerPlayerInfo? playerInfo, bool value = true)
     {
-        if (playerInfo.CanVent != value)
+        if (playerInfo == null)
+        {
+            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject,
+                    "Couldn't check if can vent, playerInfo not set"))
+            {
+                return false;
+            }
+        }
+        else if (playerInfo.CanVent != value)
         {
             if (await sender.Client.ReportCheatAsync(context, CheatCategory.Role, "Failed can vent check"))
             {
@@ -102,10 +105,19 @@ internal abstract partial class InnerNetObject
         return true;
     }
 
-    protected async ValueTask<bool> ValidateRole(CheatContext context, IClientPlayer sender, InnerPlayerInfo playerInfo,
+    protected async ValueTask<bool> ValidateRoleAsync(CheatContext context, IClientPlayer sender,
+        InnerPlayerInfo? playerInfo,
         RoleTypes role)
     {
-        if (playerInfo.RoleType != role)
+        if (playerInfo == null)
+        {
+            if (await sender.Client.ReportCheatAsync(context, CheatCategory.InvalidObject,
+                    "Couldn't check if role, playerInfo not set"))
+            {
+                return false;
+            }
+        }
+        else if (playerInfo.RoleType != role)
         {
             if (await sender.Client.ReportCheatAsync(context, CheatCategory.Role, $"Failed role = {role} check"))
             {

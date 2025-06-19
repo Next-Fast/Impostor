@@ -1,17 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Impostor.Api;
 using Impostor.Api.Config;
-using Impostor.Api.Events.Managers;
 using Impostor.Api.Games;
 using Impostor.Api.Innersloth;
 using Impostor.Api.Net;
 using Impostor.Api.Net.Messages;
 using Impostor.Api.Net.Messages.C2S;
 using Impostor.Api.Net.Messages.S2C;
-using Impostor.Server.Events;
 using Impostor.Server.Net.Manager;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -73,6 +70,7 @@ internal class Client(
             CheatCategory.Ownership => _antiCheatConfig.EnableOwnershipChecks,
             CheatCategory.Role => _antiCheatConfig.EnableRoleChecks,
             CheatCategory.Target => _antiCheatConfig.EnableTargetChecks,
+            CheatCategory.InvalidObject => _antiCheatConfig.EnableInvalidObjectChecks,
             CheatCategory.Other => true,
             _ => LogUnknownCategory(category),
         };
@@ -127,7 +125,7 @@ internal class Client(
             {
                 // Read game settings.
                 Message00HostGameC2S.Deserialize(reader, out var gameOptions, out _, out var gameFilterOptions);
-                
+
                 // Create game.
                 var game = await gameManager.CreateAsync(this, gameOptions, gameFilterOptions);
 
@@ -136,7 +134,7 @@ internal class Client(
                     await DisconnectAsync(DisconnectReason.GameNotFound);
                     return;
                 }
-                
+
                 // Code in the packet below will be used in JoinGame.
                 using var writer = MessageWriter.Get(MessageType.Reliable);
                 Message00HostGameS2C.Serialize(writer, game.Code);

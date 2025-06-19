@@ -1,90 +1,81 @@
 using System.Runtime.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SelfHttpMatchmaker.Types;
 
+[Serializable]
 public class GameFilter
 {
-    public required string OptionType { get; set; }
+    [JsonConstructor]
+    public GameFilter(string optionType, string key, string subFilterString)
+    {
+        OptionType = optionType;
+        Key = key;
+        SubFilterString = subFilterString;
+        SubFilter = ResolveSubFilter(OptionType, SubFilterString);
+    }
 
-    public required string Key { get; set; }
-    
-    public required string SubFilterString { get; set; }
+    [JsonIgnore] public ISubFilter SubFilter { get; set; }
+
+    [JsonPropertyName("OptionType")] public required string OptionType { get; set; }
+
+    [JsonPropertyName("Key")] public required string Key { get; set; }
+
+    [JsonPropertyName("SubFilterString")] public required string SubFilterString { get; set; }
+
+    public void ModifySubFilter(ISubFilter subFilter)
+    {
+        SubFilter = subFilter;
+    }
 
     [OnSerializing]
     internal void OnSerializing(StreamingContext context)
     {
-        
+        SubFilterString = JsonSerializer.Serialize(SubFilter);
     }
 
-    private static uint ComputeStringHash(string s)
+    [OnDeserialized]
+    internal void OnDeserialized(StreamingContext context)
     {
-        return s.Aggregate(2166136261U, (current, t) => (t ^ current) * 16777619U);
+        SubFilter = ResolveSubFilter(OptionType, SubFilterString);
     }
-    
-    private ISubFilter ResolveSubFilter(string type, string filterString)
+
+    private ISubFilter ResolveSubFilter(string? type, string filterString)
     {
-        var num = ComputeStringHash(type);
-        switch (num)
+        if (type != null)
         {
-            case <= 2515107422U when num != 108289031U:
+            switch (type.ToLower())
             {
-                if (num != 709505714U)
-                {
-                        if (num == 2515107422U)
-                        {
-                            if (type == "int")
-                            {
-                                return JsonConvert.DeserializeObject<IntGameFilter>(filterString);
-                            }
-                        }
-                    }
-                    else if (type == "platform")
-                    {
-                        return JsonConvert.DeserializeObject<PlatformGameFilter>(filterString);
-                    }
-
-                    break;
-                }
-                case <= 2515107422U when type == "cat":
-                    return JsonConvert.DeserializeObject<CategorizedGameFilter>(filterString);
-                case <= 2515107422U:
-                    break;
-                case <= 3147117720U when num != 2722888107U:
-                {
-                    if (num == 3147117720U)
-                    {
-                        if (type == "languages")
-                        {
-                            return JsonConvert.DeserializeObject<LanguageFilter>(filterString);
-                        }
-                    }
-
-                    break;
-                }
-                case <= 3147117720U when type == "chat":
-                    return JsonConvert.DeserializeObject<ChatModeGameFilter>(filterString);
-                case <= 3147117720U:
-                    break;
+                case "int":
+                    return JsonSerializer.Deserialize<IntGameFilter>(filterString)
+                           ?? throw new InvalidOperationException("Deserialization returned null for IntGameFilter");
+                case "platform":
+                    return JsonSerializer.Deserialize<PlatformGameFilter>(filterString)
+                           ?? throw new InvalidOperationException(
+                               "Deserialization returned null for PlatformGameFilter");
+                case "cat":
+                    return JsonSerializer.Deserialize<CategorizedGameFilter>(filterString)
+                           ?? throw new InvalidOperationException(
+                               "Deserialization returned null for CategorizedGameFilter");
+                case "languages":
+                    return JsonSerializer.Deserialize<LanguageFilter>(filterString)
+                           ?? throw new InvalidOperationException("Deserialization returned null for LanguageFilter");
+                case "chat":
+                    return JsonSerializer.Deserialize<ChatModeGameFilter>(filterString)
+                           ?? throw new InvalidOperationException(
+                               "Deserialization returned null for ChatModeGameFilter");
+                case "map":
+                    return JsonSerializer.Deserialize<MapGameFilter>(filterString)
+                           ?? throw new InvalidOperationException("Deserialization returned null for MapGameFilter");
+                case "bool":
+                    return JsonSerializer.Deserialize<BoolGameFilter>(filterString)
+                           ?? throw new InvalidOperationException("Deserialization returned null for BoolGameFilter");
                 default:
-                {
-                    if (num != 3365180733U)
-                    {
-                        if (num == 3751997361U)
-                        {
-                            if (type == "map")
-                            {
-                                return JsonConvert.DeserializeObject<MapGameFilter>(filterString);
-                            }
-                        }
-                    }
-                    else if (type == "bool")
-                    {
-                        return JsonConvert.DeserializeObject<BoolGameFilter>(filterString);
-                    }
-
-                    break;
-                }
+                    throw new InvalidOperationException("No type matches subfilter");
             }
-        return null;
+        }
+
+        throw new InvalidOperationException("Must provide type for sub filter");
     }
 }

@@ -34,7 +34,7 @@ internal partial class InnerPlayerPhysics(
     public override async ValueTask<bool> HandleRpcAsync(ClientPlayer sender, ClientPlayer? target, RpcCalls call,
         IMessageReader reader)
     {
-        if (call != RpcCalls.BootFromVent && !await ValidateOwnership(call, sender))
+        if (call != RpcCalls.BootFromVent && !await ValidateOwnershipAsync(call, sender))
         {
             return false;
         }
@@ -44,7 +44,7 @@ internal partial class InnerPlayerPhysics(
             case RpcCalls.EnterVent:
             case RpcCalls.ExitVent:
             {
-                if (!await ValidateCanVent(call, sender, playerControl.PlayerInfo))
+                if (!await ValidateCanVentAsync(call, sender, playerControl.PlayerInfo))
                 {
                     return false;
                 }

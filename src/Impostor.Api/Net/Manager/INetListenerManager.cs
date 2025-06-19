@@ -1,3 +1,4 @@
+using System;
 using Impostor.Api.Config;
 
 namespace Impostor.Api.Net.Manager;
@@ -5,5 +6,6 @@ namespace Impostor.Api.Net.Manager;
 public interface INetListenerManager
 {
     ListenerConfig? GetAvailableListener();
-}
 
+    public event Action<INetListenerManager, ListenerConfig> OnDisposeListener;
+}

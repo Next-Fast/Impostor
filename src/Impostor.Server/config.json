@@ -10,13 +10,24 @@
         "CertificatePath": "certificate.pem",
         "HasAuth": true
       }
-    ]
+    ],
+    "Matchmakers": [],
+    "EnableCommands": false,
+    "CommandPrefix": "/",
+    "WriteConsole": true,
+    "WriteFile": true,
+    "LogFilePath": "LogOut.log",
+    "LogLevel": "Information"
   },
-  "ExtensionServer": {
-    "Enabled": true,
-    "ListenIp": "127.0.0.1",
-    "ListenPort": 25000,
-    "EnabledHttpApi": true
+  "Plugin": {
+    "PluginPaths": [
+      "plugins"
+    ],
+    "LibraryPaths": [
+      "libraries"
+    ],
+    "HttpIp": "127.0.0.1",
+    "HttpPort": 25000
   },
   "AntiCheat": {
     "Enabled": false,
@@ -37,7 +48,13 @@
   },
   "Compatibility": {
     "AllowFutureGameVersions": false,
-    "AllowHostAuthority": false,
+    "AllowHostAuthority": true,
     "AllowVersionMixing": false
+  },
+  "SelfHttpMatchmaker": {
+    "RegionName": "Impostor",
+    "EnableMatchmakerTokenAuth": false,
+    "PutTokenAuth": false,
+    "EnableClientTokenAuth": false
   }
 }

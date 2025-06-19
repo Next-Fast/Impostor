@@ -1,106 +1,109 @@
-using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
-using Impostor.Api.Config;
-using Impostor.Api.Extension.Utils;
-using Impostor.Api.Games;
+using System.Web;
 using Impostor.Api.Games.Managers;
 using Impostor.Api.Innersloth;
-using Impostor.Api.Net.Manager;
-using Impostor.Api.Utils;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using SelfHttpMatchmaker.Types;
 
 namespace SelfHttpMatchmaker.Controllers;
 
 [ApiController]
-public class FiltersController(INetListenerManager listenerManager, IGameManager gameManager) : ControllerBase
+[Route("api")]
+public class FiltersController(IGameManager gameManager, ListingManager listingManager, IHostServer hostServer)
+    : ControllerBase
 {
-    private HostServer? _hostServer;
+    private static readonly List<Filters> UseFilters =
+    [
+        Filters.Tags,
+        Filters.NumImposters,
+    ];
 
-    private HostServer HostServer
+
+    [HttpGet("filters")]
+    public IActionResult GetFilters([FromHeader] AuthenticationHeaderValue authorization)
     {
-        get
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
         {
-            if (_hostServer != null)
-            {
-                return _hostServer;
-            }
-
-            _hostServer = HostServer.From(IPAddress.Parse(Listener.PublicIp.ResolveIp()), Listener.PublicPort);
-            return _hostServer;
+            return BadRequest(result);
         }
-    }
 
-    private ListenerConfig Listener
-    {
-        get => listenerManager.GetAvailableListener() ?? throw new InvalidOperationException();
-    }
-
-    private static readonly List<Filters> AllFilters = Enum.GetValues<Filters>().ToList();
-    
-    [HttpGet("api/filters")]
-    public IActionResult GetFilters()
-    {
         return Ok(new PermittedFilters
         {
             // TODO: Add filters
-            Filters = AllFilters,
+            Filters = UseFilters,
         });
     }
 
-    [HttpGet("api/filtertags")]
-    public IActionResult GetFilterTags()
+    [HttpGet("filtertags")]
+    public IActionResult GetFilterTags([FromQuery] string lang, [FromHeader] AuthenticationHeaderValue authorization)
     {
-        if (!Request.TryGetSingleOrDefault("lang", out var langString))
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
         {
-            return BadRequest("No Get Lang");
+            return BadRequest(result);
         }
 
-        var lang = (GameKeywords)uint.Parse(langString);
-        var filters = gameManager.GetFilterTags(lang);
+        var language = (GameKeywords)uint.Parse(lang);
+        var filters = gameManager.GetFilterTags(language);
         return Ok(filters);
     }
 
-    [HttpGet("api/games/filtered")]
-    public IActionResult GetFilteredGames()
+    [HttpGet("games/filtered")]
+    public IActionResult GetFilteredGames([FromQuery] string filter,
+        [FromHeader] AuthenticationHeaderValue authorization)
     {
-        // TODO: Add filter
-        if (!Request.TryGetSingleOrDefault("filter", out var content))
+        if (!authorization.TryVerifyTokenFormHeader(out var result, out _))
         {
-            return BadRequest("No Get filter");
-        }
-        
-        var set = JsonSerializer.Deserialize<GameFiltersList>(content)?.FilterSets[0];
-
-        if (set == null)
-        {
-            return BadRequest("No Get filter");
+            return BadRequest(result);
         }
 
-        var mode = set.GameMode;
-
-        var publicGames = gameManager.Games.Where(game => game.IsPublic).ToList();
-        var matchingGames = publicGames.Where(game => game.Options.GameMode == mode && FilterGame(game, set.Filters)).ToList();
-        var games = matchingGames.Select(game => GameListing.FromV2(game, HostServer.Ip, HostServer.Port)).ToList();
-        var res = new FindGamesListFilteredResponse
+        if (string.IsNullOrEmpty(filter))
         {
-            Games = games,
-            Metadata = new GamesListMetadata
+            return BadRequest(new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError,
+                "filter query para not provided")));
+        }
+
+        try
+        {
+            var decodedFilter = HttpUtility.UrlDecode(filter);
+            var filtersList = JsonSerializer.Deserialize<GameFiltersList>(decodedFilter);
+
+            // filterSets wont be null. It must at least have ChatFilter and LangFilter
+            // Vanilla game only builds one filterSet and InnerSloth officials only handles first one (though you can send multiple filter sets. sloths only handle the first)
+            if (filtersList == null || filtersList.FilterSets.Count != 1
+                                    || filtersList.FilterSets[0].Filters.Count < 2
+                                    || filtersList.FilterSets[0].Filters.All(x => x.OptionType != "languages")
+                                    || filtersList.FilterSets[0].Filters.All(x => x.OptionType != "chat"))
             {
-                AllGamesCount = publicGames.Count,
-                MatchingGamesCount = matchingGames.Count,
-            },
-        };
-        return Ok(res);
-    }
+                return BadRequest(
+                    new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError, "Invaild filterSets")));
+            }
 
-    private static bool FilterGame(IGame game, List<GameFilter> filters)
-    {
-        // TODO: Add filter
-        return true;
+            var filteredGames = listingManager.FindListingsV2(HttpContext, filtersList);
+            var gameListings = filteredGames.Select(game => GameListing.FromV2(game, hostServer.Ip, hostServer.Port))
+                .ToList();
+
+            var response = new
+            {
+                games = gameListings,
+                metadata = new
+                {
+                    allGamesCount = gameManager.Games.Count(),
+                    matchingGamesCount = gameListings.Count,
+                },
+            };
+
+            return Ok(response);
+        }
+        catch (JsonException ex)
+        {
+            return BadRequest(new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError,
+                "Unable to deserialize filter json" + ex)));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new MatchmakerResponse(new MatchmakerError(DisconnectReason.ServerError,
+                "Unknown excpetion caught in filter" + ex)));
+        }
     }
-    
 }

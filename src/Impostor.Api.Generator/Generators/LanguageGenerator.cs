@@ -1,25 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text.Json;
-using CSharpPoet;
-using Microsoft.CodeAnalysis;
-
 namespace Impostor.Api.Generator.Generators;
 
-/*public class LanguageGenerator(SourceProductionContext sourceProductionContext, ImmutableArray<(string RelativePath, string Content)> files) 
+/*public class LanguageGenerator(SourceProductionContext sourceProductionContext, ImmutableArray<(string RelativePath, string Content)> files)
     : BaseGenerator(sourceProductionContext, files)
 {
     private List<string> _keys = null!;
     private const string NameSpace = "Impostor.Api.Languages";
     private static readonly CSharpUsing LanguageTypeUsing = new("Impostor.Api.Innersloth");
-    
+
     public void Generate(params List<string> languageNames)
     {
         if (!GenerateLanguageInterface())
             return;
-        
+
         foreach (var language in languageNames)
         {
             var isBase = language == "English";
@@ -36,7 +28,7 @@ namespace Impostor.Api.Generator.Generators;
             var fields = GenerateFields(isBase, dic, language);
             var languageFile = new CSharpFile("Impostor.Api.Languages")
             {
-                Usings = 
+                Usings =
                 new CSharpClass(Visibility.Public, language)
                 {
                     Extends = isBase ? [] : ["English"],
@@ -44,7 +36,7 @@ namespace Impostor.Api.Generator.Generators;
                 },
             };
             languageFile.Usings.Add(new CSharpUsing("Impostor.Api.Innersloth"));
-            
+
             _sourceProductionContext.AddSource(language, languageFile.ToString());
         }
     }
@@ -56,7 +48,7 @@ namespace Impostor.Api.Generator.Generators;
             var keys = JsonSerializer.Deserialize<List<string>>(GetFileContent("keys.json"));
             if (keys is null)
                 return false;
-            
+
             _keys = keys;
 
             var fields = keys.Select(CSharpType.IMember (n) => new CSharpField(Visibility.Public, "string", n + " { get; set; }"));
@@ -64,7 +56,7 @@ namespace Impostor.Api.Generator.Generators;
             {
                 Usings = [LanguageTypeUsing],
                 Members = [
-                    new CSharpInterface(Visibility.Public, "ILanguage") 
+                    new CSharpInterface(Visibility.Public, "ILanguage")
                     {
                         Members = fields,
                     }],
@@ -76,10 +68,10 @@ namespace Impostor.Api.Generator.Generators;
             return false;
         }
     }
-    
+
     private void GenerateLanguage(string language)
     {
-        
+
     }
 
     private static List<CSharpType.IMember> GenerateFields(bool isBase, Dictionary<string, string> dic, string langName)
@@ -98,7 +90,7 @@ namespace Impostor.Api.Generator.Generators;
             Modifiers = isBase ? Modifiers.Virtual : Modifiers.Override,
             DefaultValue = $"Language.{langName}",
         });
-        
+
         return members;
     }
 }*/

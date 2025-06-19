@@ -12,6 +12,8 @@ config.*.json
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+LocalLib/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

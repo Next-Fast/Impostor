@@ -6,7 +6,7 @@ public class CompatibilityConfig
 
     public bool AllowFutureGameVersions { get; set; } = false;
 
-    public bool AllowHostAuthority { get; set; } = false;
+    public bool AllowHostAuthority { get; set; } = true;
 
     public bool AllowVersionMixing { get; set; } = false;
 }

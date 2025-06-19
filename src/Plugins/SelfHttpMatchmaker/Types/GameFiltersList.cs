@@ -1,6 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace SelfHttpMatchmaker.Types;
 
+[Serializable]
 public class GameFiltersList
 {
-    public List<GameFilterSet> FilterSets { get; set; }
+    [JsonPropertyName("FilterSets")] public required List<GameFilterSet> FilterSets { get; set; }
 }

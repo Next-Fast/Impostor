@@ -14,16 +14,20 @@ using VersionCompareResult = ICompatibilityManager.VersionCompareResult;
 internal class CompatibilityManager : ICompatibilityManager
 {
     private static readonly CompatibilityGroup[] DefaultSupportedVersions =
-    {
+    [
         new[]
         {
             new GameVersion(2024, 3, 1), // 2024.6.18
             new GameVersion(2024, 4, 1), // 2024.8.13
             new GameVersion(2024, 4, 2), // 2024.9.4
             new GameVersion(2024, 8, 10), // 2024.10.29
-            new GameVersion(2024, 8, 11), // 2025.3.25(16.0.0)
         },
-    };
+        new[]
+        {
+            new GameVersion(2024, 8, 11), // 2025.3.25(16.0.0)
+            new GameVersion(2025, 4, 15), // 16.0.5 (2025-05-20)
+        },
+    ];
 
     private readonly List<CompatibilityGroup> _compatibilityGroups = new();
     private readonly ILogger<CompatibilityManager> _logger;
