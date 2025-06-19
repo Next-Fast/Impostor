@@ -27,12 +27,12 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.x
+          global-json-file: "./src/global.json"
           cache: true
           cache-dependency-path: src/**/packages.lock.json
 
       - name: Run the Cake script
-        uses: cake-build/cake-action@v3
+        uses: cake-build/cake-action@v1
         with:
           verbosity: Diagnostic
           script-path: ./build.cake

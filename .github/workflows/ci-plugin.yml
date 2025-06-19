@@ -32,7 +32,7 @@ jobs:
           cache-dependency-path: src/Plugins/**/packages.lock.json
 
       - name: Run the Cake script
-        uses: cake-build/cake-action@v3
+        uses: cake-build/cake-action@v1
         with:
           verbosity: Diagnostic
           script-path: ./build-plugin.cake

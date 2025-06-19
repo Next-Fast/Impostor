@@ -1,3 +1,7 @@
+#addin "nuget:?package=SharpZipLib&Version=1.3.3"
+#addin "nuget:?package=Cake.Compression&Version=0.3.0"
+#addin "nuget:?package=Cake.FileHelpers&Version=5.0.0"
+
 var workflow = BuildSystem.GitHubActions.Environment.Workflow;
 var buildId = workflow.RunNumber;
 var tag = workflow.RefType == GitHubActionsRefType.Tag ? workflow.RefName : null;
