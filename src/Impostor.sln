@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameCodePlugin", "Plugins\G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpDebugPlugin", "Plugins\HttpDebugPlugin\HttpDebugPlugin.csproj", "{37AD539A-4644-4171-84DD-8E0370CC452D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ClientPlugins", "ClientPlugins", "{8531193E-A12B-4EDC-8AFF-625AD6674E28}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CertificateAdd", "Plugins\CertificateAdd\CertificateAdd.csproj", "{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +78,13 @@ Global
 		{37AD539A-4644-4171-84DD-8E0370CC452D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{37AD539A-4644-4171-84DD-8E0370CC452D}.Release|x86.ActiveCfg = Release|Any CPU
 		{37AD539A-4644-4171-84DD-8E0370CC452D}.Release|x86.Build.0 = Release|Any CPU
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Debug|x86.Build.0 = Debug|Any CPU
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Release|x86.ActiveCfg = Release|Any CPU
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,5 +96,6 @@ Global
 		{7E912EBE-52F5-4D6D-9203-38069456D9B9} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
 		{F19C0CC2-55FE-41D9-9372-8361EAE1B356} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
 		{37AD539A-4644-4171-84DD-8E0370CC452D} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
+		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05} = {8531193E-A12B-4EDC-8AFF-625AD6674E28}
 	EndGlobalSection
 EndGlobal
