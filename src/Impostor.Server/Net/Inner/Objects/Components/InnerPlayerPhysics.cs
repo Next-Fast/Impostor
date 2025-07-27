@@ -16,20 +16,9 @@ internal partial class InnerPlayerPhysics(
     ILogger<InnerPlayerPhysics> logger,
     InnerPlayerControl playerControl,
     IEventManager eventManager)
-    : InnerNetObject(game)
+    : InnerNetObject(game, logger)
 {
     private readonly ILogger<InnerPlayerPhysics> _logger = logger;
-
-    public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
-        bool initialState)
-    {
-        throw new NotImplementedException();
-    }
 
     public override async ValueTask<bool> HandleRpcAsync(ClientPlayer sender, ClientPlayer? target, RpcCalls call,
         IMessageReader reader)

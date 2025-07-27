@@ -155,7 +155,7 @@ internal class CompatibilityManager : ICompatibilityManager
     private CompatibilityGroup GetCompatibilityGroupOrDefault(GameVersion clientVersion)
     {
         // If the compatibility group is not defined, we assume it is not compatible with anything else than itself
-        return TryGetCompatibilityGroup(clientVersion) ?? new CompatibilityGroup(new[] { clientVersion.Normalize() });
+        return TryGetCompatibilityGroup(clientVersion) ?? new CompatibilityGroup([clientVersion.Normalize()]);
     }
 
     private void AddCompatibilityGroup(CompatibilityGroup compatibilityGroup)

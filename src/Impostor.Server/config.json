@@ -11,13 +11,16 @@
         "HasAuth": true
       }
     ],
-    "Matchmakers": [],
     "EnableCommands": false,
     "CommandPrefix": "/",
     "WriteConsole": true,
     "WriteFile": true,
-    "LogFilePath": "LogOut.log",
-    "LogLevel": "Information"
+    "LogLevel": "Verbose",
+    "LogFilePath": "{Root}/Logs",
+    "LogFileName": "LogOut_{TimeStamp}.log",
+    "SaveAuthInfo": false,
+    "EnableContent": false,
+    "EnableMatchmaker": false
   },
   "Plugin": {
     "PluginPaths": [
@@ -52,11 +55,15 @@
     "AllowVersionMixing": false
   },
   "SelfHttpMatchmaker": {
-    "RegionName": "Xtreme.Normal(CN)",
+    "FriendCodeAuth": false,
     "EnableMatchmakerTokenAuth": true,
     "PutTokenAuth": true,
     "EnableClientTokenAuth": true,
     "Token": "TianMeng_Impostor_Server_Token",
     "TokenExpiresMinutes": 30
+  },
+  "GameCode": {
+    "GenerateType": "Random",
+    "GameCodeDir": "{Root}/GameCode"
   }
 }

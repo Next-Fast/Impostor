@@ -3,10 +3,11 @@ using Impostor.Api.Innersloth;
 using Impostor.Server.Net.Inner.Objects.Systems;
 using Impostor.Server.Net.Inner.Objects.Systems.ShipStatus;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner.Objects.ShipStatus;
 
-internal class InnerFungleShipStatus(Game game) : InnerShipStatus(game, MapTypes.Fungle)
+internal class InnerFungleShipStatus(Game game, ILogger<InnerFungleShipStatus> logger) : InnerShipStatus(game, MapTypes.Fungle, logger)
 {
     protected override void AddSystems(Dictionary<SystemTypes, ISystemType> systems)
     {

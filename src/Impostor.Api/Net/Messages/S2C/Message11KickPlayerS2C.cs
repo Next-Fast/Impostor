@@ -18,8 +18,8 @@ public class Message11KickPlayerS2C
         writer.EndMessage();
     }
 
-    public static void Deserialize(IMessageReader reader)
+    /*public static void Deserialize(IMessageReader reader)
     {
         throw new NotImplementedException();
-    }
+    }*/
 }

@@ -27,7 +27,16 @@ internal partial class Game
         await eventManager.CallAsync(new GamePlayerJoinedEvent(this, player));
     }
 
-    private async ValueTask<bool> PlayerRemove(int playerId, bool isBan = false)
+    public async ValueTask<bool> DestroyGameAsync()
+    {
+        foreach (var player in Players)
+        {
+            await HandleRemovePlayerAsync(player.Client.Id, DisconnectReason.Custom);
+        }
+        return true;
+    }
+
+    private async ValueTask<bool> PlayerRemoveAsync(int playerId, bool isBan = false)
     {
         if (!_players.TryRemove(playerId, out var player))
         {
@@ -36,7 +45,7 @@ internal partial class Game
 
         logger.LogInformation("{0} - Player {1} ({2}) has left.", Code, player.Client.Name, playerId);
 
-        if (GameState == GameStates.Starting || GameState == GameStates.Started || GameState == GameStates.NotStarted)
+        if (GameState is GameStates.Starting or GameStates.Started or GameStates.NotStarted)
         {
             if (player.Character?.PlayerInfo != null)
             {

@@ -3,24 +3,16 @@ using System.Threading.Tasks;
 using Impostor.Api.Net;
 using Impostor.Api.Net.Inner.Objects;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner.Objects;
 
 internal class InnerLobbyBehaviour : InnerNetObject, IInnerLobbyBehaviour
 {
-    public InnerLobbyBehaviour(Game game) : base(game)
+    public InnerLobbyBehaviour(Game game, ILogger<InnerLobbyBehaviour> logger) : base(game, logger)
     {
         Components.Add(this);
     }
 
-    public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
-    {
-        throw new NotImplementedException();
-    }
 
-    public override ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
-        bool initialState)
-    {
-        throw new NotImplementedException();
-    }
 }

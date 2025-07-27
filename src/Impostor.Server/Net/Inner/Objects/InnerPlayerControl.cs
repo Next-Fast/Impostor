@@ -33,7 +33,7 @@ internal partial class InnerPlayerControl : InnerNetObject
 
     public InnerPlayerControl(Game game,
         ILogger<InnerPlayerControl> logger, IServiceProvider serviceProvider, IEventManager eventManager,
-        IDateTimeProvider dateTimeProvider) : base(game)
+        IDateTimeProvider dateTimeProvider) : base(game, logger)
     {
         _game = game;
         _logger = logger;
@@ -90,7 +90,13 @@ internal partial class InnerPlayerControl : InnerNetObject
 
     public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
     {
-        throw new NotImplementedException();
+        if (initialState)
+        {
+            writer.Write(IsNew);
+            IsNew = true;
+        }
+        writer.Write(this.PlayerId);
+        return ValueTask.FromResult(true);
     }
 
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,

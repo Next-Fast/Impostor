@@ -1,3 +1,5 @@
+using Impostor.Api.Config;
+
 namespace Impostor.Api.Extension.Commands;
 
 public interface ICommandManager
@@ -11,4 +13,8 @@ public interface ICommandManager
     public ICommandManager RegisterCommand<T>() where T : ICommand;
 
     public Task HandleCommandAsync(string commandString);
+    
+    public Task HandleStringAsync();
+    
+    public List<IConfigSet> ConfigSets { get; }
 }

@@ -19,6 +19,21 @@ public interface ICompatibilityManager
         Unknown,
     }
 
+    public GameVersion MaxSupportedVersion
+    {
+        get
+        {
+            return CompatibilityGroups.SelectMany(x => x.GameVersions).Max();
+        }
+    }
+    public GameVersion MinSupportedVersion
+    {
+        get
+        {
+            return CompatibilityGroups.SelectMany(x => x.GameVersions).Min();
+        }
+    }
+
     /// <summary>
     ///     Gets the compatibility groups.
     /// </summary>

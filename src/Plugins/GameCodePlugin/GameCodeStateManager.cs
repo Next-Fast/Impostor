@@ -1,13 +1,15 @@
 using System.Text.RegularExpressions;
 using Impostor.Api.Games;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace GameCodePlugin;
 
-public partial class GameCodeStateManager(ILogger<GameCodeStateManager> logger)
+public partial class GameCodeStateManager(ILogger<GameCodeStateManager> logger, IOptions<GameCodeConfig> config)
 {
     private static readonly Regex Regex = MyRegex();
-    internal List<CodeState> _codes = [];
+    private List<CodeState> _codes = [];
+    private List<CodeState> _unusedCodes = [];
 
     internal void ReleaseCode(GameCode code)
     {
@@ -18,18 +20,61 @@ public partial class GameCodeStateManager(ILogger<GameCodeStateManager> logger)
         }
 
         state.Used = false;
+        _unusedCodes.Add(state);
     }
 
     internal GameCode? GetCode()
     {
-        var state = _codes.FirstOrDefault(used => !used);
+        var state = config.Value.GenerateType switch
+        {
+            GameCodeGenerateType.Sequential => GetSequentialCode(),
+            GameCodeGenerateType.Random => GetRandomCode(),
+            GameCodeGenerateType.First => _unusedCodes.FirstOrDefault(),
+            _ => null,
+        };
+        
         if (state == null)
         {
             return null;
         }
 
         state.Used = true;
+        _unusedCodes.Remove(state);
         return state.Code;
+    }
+
+    private int _currentIndex = 1;
+    private CodeState? GetSequentialCode()
+    {
+        if (_currentIndex > _codes.Count)
+        {
+            _currentIndex = 1;
+        }
+        
+        while (_currentIndex < _codes.Count)
+        {
+            var state = _codes[_currentIndex];
+            if (!state)
+            {
+                _currentIndex++;
+                continue;
+            }
+
+            _currentIndex++;
+            return state;
+        }
+
+        return null;
+    }
+    private CodeState? GetRandomCode()
+    {
+        if (_unusedCodes.Count == 0)
+        {
+            return null;
+        }
+        
+        var index = Random.Shared.Next(_unusedCodes.Count - 1);
+        return _unusedCodes[index];
     }
 
     internal async ValueTask LoadCodeAsync(DirectoryInfo dir)
@@ -68,6 +113,7 @@ public partial class GameCodeStateManager(ILogger<GameCodeStateManager> logger)
         }
 
         _codes = hashSet.Select(code => new CodeState(code)).ToList();
+        _unusedCodes = _codes.ToList();
     }
 
 

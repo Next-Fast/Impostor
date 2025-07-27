@@ -35,7 +35,6 @@ public static class HazelExtensions
         await connection.DisconnectAsync(reason.ToString(), writer);
     }
 
-
     public static GameVersion ReadGameVersion(this IMessageReader reader)
     {
         return new GameVersion(reader.ReadInt32());

@@ -4,10 +4,11 @@ using Impostor.Api.Net.Inner.Objects.ShipStatus;
 using Impostor.Server.Net.Inner.Objects.Systems;
 using Impostor.Server.Net.Inner.Objects.Systems.ShipStatus;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner.Objects.ShipStatus;
 
-internal class InnerMiraShipStatus(Game game) : InnerShipStatus(game, MapTypes.MiraHQ), IInnerMiraShipStatus
+internal class InnerMiraShipStatus(Game game, ILogger<InnerMiraShipStatus> logger) : InnerShipStatus(game, MapTypes.MiraHQ, logger), IInnerMiraShipStatus
 {
     protected override void AddSystems(Dictionary<SystemTypes, ISystemType> systems)
     {

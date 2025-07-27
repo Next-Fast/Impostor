@@ -8,9 +8,9 @@ public class FindGameByCodeResponse
 
     public required GameListing Game { get; set; }
 
-    public StringNames Region { get; set; }
+    public StringNames? Region { get; set; }
 
-    public required string UntranslatedRegion { get; set; }
+    public string? UntranslatedRegion { get; set; }
 
     public class MatchmakerError
     {

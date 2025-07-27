@@ -21,7 +21,7 @@ internal partial class InnerPlayerInfo
     private readonly ILogger<InnerPlayerInfo> _logger;
 
     public InnerPlayerInfo(IEventManager eventManager,
-        Game game, ILogger<InnerPlayerInfo> logger) : base(game)
+        Game game, ILogger<InnerPlayerInfo> logger) : base(game, logger)
     {
         Components.Add(this);
         _eventManager = eventManager;

@@ -98,8 +98,6 @@ public sealed class GamesController(
         {
             Errors = [],
             Game = listing,
-            Region = StringNames.NoTranslation,
-            UntranslatedRegion = config.Value.RegionName,
         };
         return Ok(res);
     }

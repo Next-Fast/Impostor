@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
@@ -22,11 +23,20 @@ public partial class Main : BasePlugin
     public Harmony Harmony { get; } = new(Id);
 
     internal static ManualLogSource? MainLog { get; private set; }
-    
+    internal static List<string> noReplace = [];
     public override void Load()
     {
         MainLog = Log;
         Harmony.PatchAll();
+        
+        var noReplaceServerFilePath = Path.Combine(Paths.GameRootPath, "NoReplace.json");
+        if (File.Exists(noReplaceServerFilePath))
+        {
+            var text = File.ReadAllText(noReplaceServerFilePath);
+            var content = JsonSerializer.Deserialize<List<string>>(text);
+            if (content != null)
+                noReplace = content;
+        }
         
         var dir = Path.Combine(Paths.GameRootPath, "Certificates");
         if (!Directory.Exists(dir))
@@ -88,14 +98,17 @@ public static class CertificatePatches
 
                                                   """;
 
-    [HarmonyPatch(typeof(AuthManager), nameof(AuthManager.CreateDtlsConnection)), HarmonyPrefix]
-    private static bool OnCreateDtlsConnectionPatch(string targetIp, ushort targetPort, ref DtlsUnityConnection __result)
+    [HarmonyPatch(typeof(DtlsUnityConnection), nameof(DtlsUnityConnection.SetValidServerCertificates)), HarmonyPrefix]
+    private static void OnCreateDtlsConnectionPatch(ref X509Certificate2Collection certificateCollection)
     {
-        var ipaddress = IPAddress.Parse(targetIp);
-        var dtlsUnityConnection = new DtlsUnityConnection(new UnityLogger().Cast<ILogger>(), new IPEndPoint(ipaddress, targetPort));
-        dtlsUnityConnection.SetValidServerCertificates(GetCertificateCollection());
-        __result = dtlsUnityConnection;
-        Main.MainLog?.LogInfo("创建证书连接");
-        return false;
+        var region = ServerManager.Instance.CurrentRegion;
+        if (region.TranslateName is StringNames.ServerAS or StringNames.ServerEU or StringNames.ServerLabel or StringNames.ServerNA or StringNames.ServerSA)
+            return;
+
+        if (Main.noReplace.Contains(region.Name))
+            return;
+        
+        certificateCollection = GetCertificateCollection();
+        Main.MainLog?.LogInfo("替换证书");
     }
 }

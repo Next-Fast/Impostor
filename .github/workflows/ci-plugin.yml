@@ -25,9 +25,9 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.x
+          dotnet-version: 9
           cache: true
           cache-dependency-path: src/Plugins/**/packages.lock.json
 

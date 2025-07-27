@@ -17,17 +17,13 @@ internal class InnerVoteBanSystem : InnerNetObject, IInnerVoteBanSystem
     private readonly Dictionary<int, int[]> _votes;
 
     public InnerVoteBanSystem(Game game,
-        ILogger<InnerVoteBanSystem> logger) : base(game)
+        ILogger<InnerVoteBanSystem> logger) : base(game, logger)
     {
         _logger = logger;
         _votes = new Dictionary<int, int[]>();
         Components.Add(this);
     }
-
-    public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
-    {
-        throw new NotImplementedException();
-    }
+    
 
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
         bool initialState)

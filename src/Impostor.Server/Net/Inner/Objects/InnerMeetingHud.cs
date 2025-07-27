@@ -29,7 +29,7 @@ internal partial class InnerMeetingHud : InnerNetObject
     [AllowNull] private PlayerVoteArea[] _playerStates;
 
     public InnerMeetingHud(Game game,
-        ILogger<InnerMeetingHud> logger, IEventManager eventManager) : base(game)
+        ILogger<InnerMeetingHud> logger, IEventManager eventManager) : base(game, logger)
     {
         _logger = logger;
         _eventManager = eventManager;
@@ -51,7 +51,7 @@ internal partial class InnerMeetingHud : InnerNetObject
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    logger.LogTrace("Game mode is not supported, skipping meeting timer");
                 }
             }
             catch (TaskCanceledException)
@@ -64,11 +64,7 @@ internal partial class InnerMeetingHud : InnerNetObject
     }
 
     public InnerPlayerInfo? Reporter { get; private set; }
-
-    public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
-    {
-        throw new NotImplementedException();
-    }
+    
 
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
         bool initialState)

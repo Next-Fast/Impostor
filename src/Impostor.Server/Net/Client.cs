@@ -92,7 +92,7 @@ internal class Client(
                 player.Game.BanIp(Connection.EndPoint.Address);
             }
 
-            await player.Game.HandleRemovePlayer(Id, DisconnectReason.Hacking);
+            await player.Game.HandleRemovePlayerAsync(Id, DisconnectReason.Hacking);
         }
 
         var disconnectMessage =
@@ -222,7 +222,7 @@ internal class Client(
                     out var playerId,
                     out var reason);
 
-                await Player!.Game.HandleRemovePlayer(playerId, (DisconnectReason)reason);
+                await Player!.Game.HandleRemovePlayerAsync(playerId, (DisconnectReason)reason);
                 break;
             }
 
@@ -310,7 +310,7 @@ internal class Client(
                     out var playerId,
                     out var isBan);
 
-                await Player!.Game.HandleKickPlayer(playerId, isBan);
+                await Player!.Game.HandleKickPlayerAsync(playerId, isBan);
                 break;
             }
 
@@ -347,7 +347,7 @@ internal class Client(
             {
                 // The client never sends over the real disconnect reason so we always assume ExitGame
                 var isRemote = reason == "The remote sent a disconnect request";
-                await Player.Game.HandleRemovePlayer(Id, isRemote ? DisconnectReason.ExitGame : DisconnectReason.Error);
+                await Player.Game.HandleRemovePlayerAsync(Id, isRemote ? DisconnectReason.ExitGame : DisconnectReason.Error);
             }
         }
         catch (Exception ex)

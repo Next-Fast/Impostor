@@ -19,7 +19,7 @@ internal partial class InnerCustomNetworkTransform(
     InnerPlayerControl playerControl,
     IEventManager eventManager,
     ObjectPool<PlayerMovementEvent> pool)
-    : InnerNetObject(game)
+    : InnerNetObject(game, logger)
 {
     private static readonly Vector2 ColliderOffset = new(0f, -0.4f);
 

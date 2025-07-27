@@ -1,3 +1,5 @@
+using System.Linq;
+using Impostor.Api.Data;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Impostor.Api.Utils;

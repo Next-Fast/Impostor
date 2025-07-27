@@ -13,7 +13,7 @@ internal abstract class GameLogicComponent
 
     public virtual ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
     {
-        throw new NotImplementedException();
+        return ValueTask.FromResult(false);
     }
 
     public virtual ValueTask DeserializeAsync(IMessageReader reader, bool initialState)

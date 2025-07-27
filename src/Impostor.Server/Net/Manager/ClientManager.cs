@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Impostor.Api;
 using Impostor.Api.Config;
 using Impostor.Api.Events.Managers;
+using Impostor.Api.Extension.Commands;
+using Impostor.Api.Extension.Net;
 using Impostor.Api.Innersloth;
 using Impostor.Api.Net;
 using Impostor.Api.Net.Manager;
@@ -13,6 +16,7 @@ using Impostor.Server.Events.Client;
 using Impostor.Server.Net.Factories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Timer = System.Timers.Timer;
 
 namespace Impostor.Server.Net.Manager;
 
@@ -24,10 +28,33 @@ internal partial class ClientManager
     private readonly ICompatibilityManager _compatibilityManager;
     private readonly IEventManager _eventManager;
     private readonly ILogger<ClientManager> _logger;
+    private readonly BanIpContent _banIpContent;
     private int _idLast;
 
+    public async Task BanAsync(IPAddress ip, TimeSpan span)
+    {
+        foreach (var client in _clients.Values)
+        {
+            if (client.Connection.EndPoint.Address.Equals(ip))
+            {
+                await client.DisconnectAsync(DisconnectReason.Custom, "Your Ip Banned From Server");
+                Remove(client);
+            }
+        }
+        
+        await _banIpContent.BanIpAsync(ip, span);
+    }
+    
+    public async Task BanAsync(IClient client)
+    {
+        var ip = client.Connection!.EndPoint.Address;
+        await client.DisconnectAsync(DisconnectReason.Custom, "Your Ip Banned From Server");
+        Remove(client);
+        await _banIpContent.BanIpAsync(ip, TimeSpan.FromMinutes(10));
+    }
+
     public ClientManager(ILogger<ClientManager> logger, IEventManager eventManager, IClientFactory clientFactory,
-        ICompatibilityManager compatibilityManager, IOptions<CompatibilityConfig> compatibilityConfig)
+        ICompatibilityManager compatibilityManager, IOptions<CompatibilityConfig> compatibilityConfig, BanIpContent banIpContent)
     {
         _logger = logger;
         _eventManager = eventManager;
@@ -35,6 +62,7 @@ internal partial class ClientManager
         _clients = new ConcurrentDictionary<int, ClientBase>();
         _compatibilityManager = compatibilityManager;
         _compatibilityConfig = compatibilityConfig.Value;
+        _banIpContent = banIpContent;
 
         if (_compatibilityConfig.AllowFutureGameVersions
             || _compatibilityConfig.AllowHostAuthority
@@ -85,7 +113,7 @@ internal partial class ClientManager
     }
 
     public async ValueTask RegisterConnectionAsync(IHazelConnection connection, string name, GameVersion clientVersion,
-        Language language, QuickChatModes chatMode, PlatformSpecificData? platformSpecificData)
+        Language language, QuickChatModes chatMode, PlatformSpecificData? platformSpecificData, ClientAuthInfo? authInfo)
     {
         var versionCompare = _compatibilityManager.CanConnectToServer(clientVersion);
         if (versionCompare == ICompatibilityManager.VersionCompareResult.ServerTooOld &&
@@ -151,6 +179,13 @@ internal partial class ClientManager
         client.Id = id;
         _logger.LogTrace("Client connected.");
         _clients.TryAdd(id, client);
+
+        if (authInfo != null)
+        {
+            authInfo.Client = client;
+            authInfo.CacheName = client.Name;
+            _logger.LogTrace("AuthInfo Set Client {Id}", id);
+        }
 
         await _eventManager.CallAsync(new ClientConnectedEvent(connection, client));
     }

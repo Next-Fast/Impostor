@@ -13,6 +13,7 @@ using Impostor.Api.Net.Messages.Rpcs;
 using Impostor.Server.Net.Inner.Objects.Systems;
 using Impostor.Server.Net.Inner.Objects.Systems.ShipStatus;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner.Objects.ShipStatus;
 
@@ -20,8 +21,8 @@ internal abstract class InnerShipStatus : InnerNetObject, IInnerShipStatus
 {
     private readonly Dictionary<SystemTypes, ISystemType> _systems = new();
 
-    protected InnerShipStatus(Game game, MapTypes mapType) :
-        base(game)
+    protected InnerShipStatus(Game game, MapTypes mapType, ILogger<InnerShipStatus> logger) :
+        base(game, logger)
     {
         Components.Add(this);
 
@@ -48,12 +49,7 @@ internal abstract class InnerShipStatus : InnerNetObject, IInnerShipStatus
 
         return base.OnSpawnAsync();
     }
-
-    public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
         bool initialState)
     {

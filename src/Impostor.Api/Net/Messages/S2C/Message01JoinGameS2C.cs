@@ -51,8 +51,8 @@ public class Message01JoinGameS2C
         writer.EndMessage();
     }
 
-    public static void Deserialize(IMessageReader reader)
+    /*public static void Deserialize(IMessageReader reader)
     {
         throw new NotImplementedException();
-    }
+    }*/
 }

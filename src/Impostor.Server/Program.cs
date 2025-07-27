@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using Impostor.Api.Config;
+using Impostor.Api.Data;
 using Impostor.Api.Events.Managers;
 using Impostor.Api.Extension.Commands;
 using Impostor.Api.Extension.Utils;
@@ -141,13 +142,32 @@ internal static class Program
                 services
                     .AddRequiredSingleton<IClientManager, ClientManager>()
                     .AddRequiredSingleton<IGameManager, GameManager>()
-                    .AddRequiredSingleton<ICommandManager, CommandManager>()
-                    .AddRequiredSingleton<IMatchmakerManager, MatchmakerManager>()
                     .AddRequiredSingleton<INetListenerManager, NetListenerManager>();
+                
 
+                if (config.EnableContent)
+                {
+                    services
+                        .AddHostedService<ContentDBService>();
+
+                    if (config.SaveAuthInfo)
+                    {
+                        services.AddSingleton<IContent, ClientAuthManager.AuthInfoContent>();
+                    }
+                }
+                
+
+                if (config.EnableCommands)
+                {
+                    services
+                        .AddRequiredSingleton<ICommandManager, CommandManager>()
+                        .AddHostedService<ConsoleCommandService>();
+                }
+                
+                services.AddBanIpContent(config);
+                
                 services
-                    .AddHostedService<StarterService>()
-                    .AddHostedService<ConsoleCommandService>();
+                    .AddHostedService<StarterService>();
             });
         return builder;
     }
@@ -159,11 +179,7 @@ internal static class Program
             AssemblyLoadContext.Default.Resolving += LoadSerilogAssembly;
 
             loggerConfiguration
-#if DEBUG
-                .MinimumLevel.Is(LogEventLevel.Verbose)
-#else
                 .MinimumLevel.Is(serverConfig.LogLevel)
-#endif
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .LoggerSet(serverConfig)
@@ -194,10 +210,16 @@ internal static class Program
 
     private static LoggerConfiguration LoggerSet(this LoggerConfiguration config, ServerConfig serverConfig)
     {
+        var filePath = Path.Combine(serverConfig.LogFileDir, serverConfig.LogFileName)
+            .Replace(
+                ("{Root}", serverConfig.RootPath ?? Directory.GetCurrentDirectory()),
+                ("{TimeStamp}", FastUtils.GetTimeStamp())
+                );
+        
         return serverConfig switch
         {
-            { WriteConsole: true, WriteFile: true } => config.WriteTo.Console().WriteTo.File(serverConfig.LogFilePath),
-            { WriteConsole: false, WriteFile: true } => config.WriteTo.File(serverConfig.LogFilePath),
+            { WriteConsole: true, WriteFile: true } => config.WriteTo.Console().WriteTo.File(filePath),
+            { WriteConsole: false, WriteFile: true } => config.WriteTo.File(filePath),
             { WriteConsole: true, WriteFile: false } => config.WriteTo.Console(),
             _ => config,
         };

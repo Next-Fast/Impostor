@@ -4,10 +4,11 @@ using Impostor.Api.Net.Inner.Objects.ShipStatus;
 using Impostor.Server.Net.Inner.Objects.Systems;
 using Impostor.Server.Net.Inner.Objects.Systems.ShipStatus;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner.Objects.ShipStatus;
 
-internal class InnerSkeldShipStatus(Game game) : InnerShipStatus(game, MapTypes.Skeld), IInnerSkeldShipStatus
+internal class InnerSkeldShipStatus(Game game, ILogger<InnerSkeldShipStatus> logger) : InnerShipStatus(game, MapTypes.Skeld, logger), IInnerSkeldShipStatus
 {
     protected override void AddSystems(Dictionary<SystemTypes, ISystemType> systems)
     {

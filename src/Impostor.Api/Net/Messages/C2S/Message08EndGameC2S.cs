@@ -5,10 +5,10 @@ namespace Impostor.Api.Net.Messages.C2S;
 
 public class Message08EndGameC2S
 {
-    public static void Serialize(IMessageWriter writer)
+    /*public static void Serialize(IMessageWriter writer)
     {
         throw new NotImplementedException();
-    }
+    }*/
 
     public static void Deserialize(IMessageReader reader, out GameOverReason gameOverReason)
     {

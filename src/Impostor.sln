@@ -23,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ClientPlugins", "ClientPlug
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CertificateAdd", "Plugins\CertificateAdd\CertificateAdd.csproj", "{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextMatchPlugin", "Plugins\NextMatchPlugin\NextMatchPlugin.csproj", "{E7055B86-2F22-452F-B967-0DE4552FBBD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,14 @@ Global
 		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05}.Release|x86.ActiveCfg = Release|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Debug|x86.Build.0 = Debug|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Release|x86.ActiveCfg = Release|Any CPU
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -91,5 +101,6 @@ Global
 		{F19C0CC2-55FE-41D9-9372-8361EAE1B356} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
 		{37AD539A-4644-4171-84DD-8E0370CC452D} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
 		{55830B9D-59AD-49BB-B7ED-CBA39F17FB05} = {8531193E-A12B-4EDC-8AFF-625AD6674E28}
+		{E7055B86-2F22-452F-B967-0DE4552FBBD4} = {32836008-CC0F-4EAB-B460-4C082AF42C6C}
 	EndGlobalSection
 EndGlobal

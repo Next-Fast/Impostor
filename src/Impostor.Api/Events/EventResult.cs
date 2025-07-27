@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Impostor.Api.Events;
@@ -49,8 +50,22 @@ public class EventTypeResult(EventResultType resultType) : IEventResult
 
     public string? Message { get; set; }
 
+    public bool GetError([MaybeNullWhen(false)]out string message)
+    {
+        message = Message;
+        return Type == EventResultType.Error && !string.IsNullOrEmpty(Message);
+    }
+
     public static implicit operator EventResultType(EventTypeResult result)
     {
         return result.Type;
     }
+    
+    public bool IsSuccess() => Type == EventResultType.Success;
+    
+    public static EventTypeResult CreateError(string message) => new(EventResultType.Error) { Message = message };
+    
+    public static EventTypeResult CreateSuccess() => new(EventResultType.Success);
+    
+    public static EventTypeResult CreateCancelled() => new(EventResultType.Cancelled);
 }

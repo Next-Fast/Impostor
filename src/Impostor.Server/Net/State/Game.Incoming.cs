@@ -63,9 +63,9 @@ internal partial class Game
         await eventManager.CallAsync(new GameAlterEvent(this, isPublic));
     }
 
-    public async ValueTask HandleRemovePlayer(int playerId, DisconnectReason reason)
+    public async ValueTask HandleRemovePlayerAsync(int playerId, DisconnectReason reason)
     {
-        await PlayerRemove(playerId);
+        await PlayerRemoveAsync(playerId);
 
         // It's possible that the last player was removed, so check if the game is still around.
         if (GameState == GameStates.Destroyed)
@@ -78,7 +78,7 @@ internal partial class Game
         await SendToAllExceptAsync(packet, playerId);
     }
 
-    public async ValueTask HandleKickPlayer(int playerId, bool isBan)
+    public async ValueTask HandleKickPlayerAsync(int playerId, bool isBan)
     {
         logger.LogInformation("{0} - Player {1} has left.", Code, playerId);
 
@@ -88,7 +88,7 @@ internal partial class Game
         WriteKickPlayerMessage(message, false, playerId, isBan);
 
         await SendToAllAsync(message);
-        await PlayerRemove(playerId, isBan);
+        await PlayerRemoveAsync(playerId, isBan);
 
         // Remove the player from everyone's game.
         WriteRemovePlayerMessage(

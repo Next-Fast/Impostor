@@ -5,10 +5,11 @@ using Impostor.Api.Net.Inner.Objects.ShipStatus;
 using Impostor.Server.Net.Inner.Objects.Systems;
 using Impostor.Server.Net.Inner.Objects.Systems.ShipStatus;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner.Objects.ShipStatus;
 
-internal class InnerPolusShipStatus(Game game) : InnerShipStatus(game, MapTypes.Polus), IInnerPolusShipStatus
+internal class InnerPolusShipStatus(Game game, ILogger<InnerPolusShipStatus> logger) : InnerShipStatus(game, MapTypes.Polus, logger), IInnerPolusShipStatus
 {
     public override Vector2 GetSpawnLocation(InnerPlayerControl player, int numPlayers, bool initialSpawn)
     {

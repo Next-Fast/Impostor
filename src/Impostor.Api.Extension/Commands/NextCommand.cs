@@ -1,11 +1,13 @@
+using Impostor.Api.Events;
+
 namespace Impostor.Api.Extension.Commands;
 
-public class NextCommand(string command, Func<CommandEventArgs, Task> onInvoke) : ISingleCommand
+public class NextCommand(string command, Func<CommandEventArgs, Task<EventTypeResult>> onInvoke) : ISingleCommand
 {
-    private Func<CommandEventArgs, Task> OnInvoke { get; } = onInvoke;
+    private Func<CommandEventArgs, Task<EventTypeResult>> OnInvoke { get; } = onInvoke;
     public string Command { get; } = command;
 
-    public Task InvokeAsync(CommandEventArgs args)
+    public Task<EventTypeResult> InvokeAsync(CommandEventArgs args)
     {
         return OnInvoke(args);
     }

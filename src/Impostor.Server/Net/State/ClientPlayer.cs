@@ -53,13 +53,13 @@ internal partial class ClientPlayer : IClientPlayer
     /// <inheritdoc />
     public ValueTask KickAsync()
     {
-        return Game.HandleKickPlayer(Client.Id, false);
+        return Game.HandleKickPlayerAsync(Client.Id, false);
     }
 
     /// <inheritdoc />
     public ValueTask BanAsync()
     {
-        return Game.HandleKickPlayer(Client.Id, true);
+        return Game.HandleKickPlayerAsync(Client.Id, true);
     }
 
     public void InitializeSpawnTimeout()

@@ -12,9 +12,9 @@ public static class HandshakeC2S
         out Language language,
         out QuickChatModes chatMode,
         out PlatformSpecificData? platformSpecificData,
-        out string matchmakerToken,
+        out string? matchmakerToken,
         out uint lastId,
-        out string friendCode)
+        out string? friendCode)
     {
         clientVersion = reader.ReadGameVersion();
         name = reader.ReadString();
@@ -26,7 +26,7 @@ public static class HandshakeC2S
         }
         else
         {
-            matchmakerToken = string.Empty;
+            matchmakerToken = null;
             lastId = reader.ReadUInt32();
         }
 
@@ -42,7 +42,7 @@ public static class HandshakeC2S
         }
         else
         {
-            friendCode = string.Empty;
+            friendCode = null;
             reader.ReadString();
             reader.ReadUInt32();
         }

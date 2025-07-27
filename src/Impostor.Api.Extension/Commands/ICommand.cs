@@ -1,6 +1,14 @@
+using Impostor.Api.Events;
+
 namespace Impostor.Api.Extension.Commands;
 
-public interface ICommand;
+public interface ICommand
+{
+    public string GetDescription()
+    {
+        return string.Empty;
+    }
+}
 
 public interface ISystemCommand : ICommand
 {
@@ -10,5 +18,5 @@ public interface ISystemCommand : ICommand
 public interface ISingleCommand : ICommand
 {
     public string Command { get; }
-    public Task InvokeAsync(CommandEventArgs args);
+    public Task<EventTypeResult> InvokeAsync(CommandEventArgs args);
 }

@@ -16,7 +16,7 @@ internal abstract class InnerGameManager : InnerNetObject, IInnerGameManager
     private readonly List<GameLogicComponent> _logicComponents = new();
 
     public InnerGameManager(Game game,
-        ILogger<InnerGameManager> logger) : base(game)
+        ILogger<InnerGameManager> logger) : base(game, logger)
     {
         _logger = logger;
 
@@ -70,12 +70,7 @@ internal abstract class InnerGameManager : InnerNetObject, IInnerGameManager
 
         return result;
     }
-
-    public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public override async ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
         bool initialState)
     {

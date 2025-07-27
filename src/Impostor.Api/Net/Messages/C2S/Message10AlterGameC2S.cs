@@ -5,10 +5,10 @@ namespace Impostor.Api.Net.Messages.C2S;
 
 public class Message10AlterGameC2S
 {
-    public static void Serialize(IMessageWriter writer)
+    /*public static void Serialize(IMessageWriter writer)
     {
         throw new NotImplementedException();
-    }
+    }*/
 
     public static void Deserialize(IMessageReader reader, out AlterGameTags gameTag, out bool isPublic)
     {

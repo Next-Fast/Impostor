@@ -9,7 +9,7 @@ namespace Impostor.Server.Net;
 
 internal class StarterService(
     NetListenerManager listenerManager,
-    MatchmakerManager matchmakerManager,
+    /*MatchmakerManager matchmakerManager,*/
     IOptions<ServerConfig> serverConfigOption)
     : IHostedService
 {

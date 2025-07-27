@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Impostor.Api.Innersloth;
+using Impostor.Api.Net.Messages.S2C;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -45,6 +49,19 @@ public static class DotnetUtils
     public static string Environment
     {
         get => IsDev ? Environments.Development : Environments.Production;
+    }
+    
+    public static async ValueTask CustomDisconnectAsync(this Connection connection, string? message = null)
+    {
+        if (connection.State != ConnectionState.Connected)
+        {
+            return;
+        }
+
+        using var writer = MessageWriter.Get();
+        MessageDisconnect.Serialize(writer, true, DisconnectReason.Custom, message);
+
+        await connection.Disconnect("Custom", writer);
     }
 
     public class NextCounter<T>(string name, T start) where T : class

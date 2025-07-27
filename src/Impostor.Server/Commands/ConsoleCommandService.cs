@@ -19,33 +19,46 @@ public class ConsoleCommandService(
     ICommandManager commandManager) : BackgroundService
 {
     private readonly ServerConfig _config = config.Value;
-    private TextReader Reader { get; } = Console.In;
 
-    public override Task StartAsync(CancellationToken cancellationToken)
+    public override async Task StartAsync(CancellationToken cancellationToken)
     {
         if (!config.Value.EnableCommands)
         {
             logger.LogInformation("Commands are disabled in the config");
-            return Task.CompletedTask;
+            return;
         }
 
 
         Console.OutputEncoding = Console.InputEncoding = Encoding.UTF8;
         logger.LogInformation("Starting ConsoleCommandService");
+        await commandManager.HandleStringAsync();
         foreach (var command in serviceProvider.GetServices<ICommand>())
         {
             commandManager.RegisterCommand(command);
         }
+        
+        await base.StartAsync(cancellationToken);
+    }
 
-        return base.StartAsync(cancellationToken);
+    private static bool IsDocker()
+    {
+        return File.Exists("/.dockerenv");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var line = await Reader.ReadLineAsync(stoppingToken);
-            if (line == null)
+            if (IsDocker() && Console.IsInputRedirected)
+            {
+                break;
+            }
+            
+            var task = Task.Run(Console.ReadLine, stoppingToken);
+            await Task.WhenAny(task, Task.Delay(Timeout.Infinite, stoppingToken));
+
+            var line = task.IsCompleted ? task.GetAwaiter().GetResult() : null;
+            if (string.IsNullOrEmpty(line))
             {
                 continue;
             }

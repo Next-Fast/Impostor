@@ -3,10 +3,11 @@ using Impostor.Api.Games;
 using Impostor.Api.Net;
 using Impostor.Api.Net.Inner;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner;
 
-internal abstract partial class InnerNetObject(Game game) : GameObject, IInnerNetObject
+internal abstract partial class InnerNetObject(Game game, ILogger logger) : GameObject, IInnerNetObject
 {
     private const int HostInheritId = -2;
 
@@ -29,10 +30,18 @@ internal abstract partial class InnerNetObject(Game game) : GameObject, IInnerNe
                (OwnerId == HostInheritId && player.IsHost);
     }
 
-    public abstract ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState);
+    public virtual ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
+    {
+        logger.LogTrace("Serialization not implemented");
+        return ValueTask.FromResult(false);
+    }
 
-    public abstract ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
-        bool initialState);
+    public virtual ValueTask DeserializeAsync(IClientPlayer sender, IClientPlayer? target, IMessageReader reader,
+        bool initialState)
+    {
+        logger.LogTrace("Deserialization not implemented");
+        return ValueTask.CompletedTask;
+    }
 
     public virtual async ValueTask<bool> HandleRpcAsync(ClientPlayer sender, ClientPlayer? target, RpcCalls call,
         IMessageReader reader)

@@ -9,7 +9,6 @@ public class MedScanSystem : ISystemType
 
     public void Serialize(IMessageWriter writer, bool initialState)
     {
-        throw new NotImplementedException();
     }
 
     public void Deserialize(IMessageReader reader, bool initialState)

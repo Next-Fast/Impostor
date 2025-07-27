@@ -6,12 +6,17 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Impostor.Api;
 using Impostor.Api.Config;
 using Impostor.Api.Events.Managers;
+using Impostor.Api.Extension.Commands;
+using Impostor.Api.Extension.Net;
+using Impostor.Api.Innersloth;
 using Impostor.Api.Net.Manager;
 using Impostor.Api.Net.Messages.C2S;
 using Impostor.Api.Utils;
 using Impostor.Server.Events.Client;
+using Impostor.Server.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Next.Hazel.Dtls;
@@ -25,7 +30,8 @@ internal sealed class NetListenerManager(
     ObjectPool<MessageReader> readerPool,
     IEventManager eventManager,
     ClientManager clientManager,
-    ClientAuthManager clientAuthManager
+    ClientAuthManager clientAuthManager,
+    BanIpContent banIpContent
 ) : INetListenerManager
 {
     public List<ListenerInfo> Listeners { get; } = [];
@@ -90,6 +96,9 @@ internal sealed class NetListenerManager(
 
         if (certificate == null)
         {
+            logger.LogWarning("Certificate not found: {certificatePath} {privateKeyPath}",
+                config.CertificatePath, config.PrivateKeyPath);
+            
             return new ListenerInfo(config, listener, authListener);
         }
 
@@ -169,6 +178,7 @@ internal sealed class NetListenerManager(
                 }
 
                 await info.Listener.StartAsync();
+                logger.LogInformation("{name} Listener started to {ip}", info.Config.IsDtl ? "Dtl" : "Udp", info.Listener.EndPoint.ToString());
 
                 if (info.AuthListener is null)
                 {
@@ -176,6 +186,7 @@ internal sealed class NetListenerManager(
                 }
 
                 await info.AuthListener.StartAsync();
+                logger.LogInformation("Auth Listener started to {ip}", info.AuthListener.EndPoint.ToString());
             }
             catch (Exception e)
             {
@@ -190,55 +201,73 @@ internal sealed class NetListenerManager(
         }
     }
 
-    public Task StopAllAsync()
+    public async Task StopAllAsync()
     {
-        lock (Listeners)
+        for (var i = 0; i < Listeners.Count -1; i ++)
         {
-            foreach (var info in Listeners)
+            var info = Listeners[i];
+            try
             {
-                try
-                {
-                    _ = StopListenerAsync(info);
-                }
-                catch (Exception e)
-                {
-                    logger.LogError(
-                        "Failed to stop listener ip:{ip} port:{port} dtl:{dtl} auth:{auth} :\n{e}",
-                        info.Config.ListenIp,
-                        info.Config.ListenPort,
-                        info.Config.IsDtl,
-                        info.Config.HasAuth,
-                        e);
-                }
+                await StopListenerAsync(info);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(
+                    "Failed to stop listener ip:{ip} port:{port} dtl:{dtl} auth:{auth} :\n{e}",
+                    info.Config.ListenIp,
+                    info.Config.ListenPort,
+                    info.Config.IsDtl,
+                    info.Config.HasAuth,
+                    e);
             }
         }
-
-        return Task.CompletedTask;
     }
 
     private async ValueTask OnAuthConnectionAsync(NewConnectionEventArgs eventArgs)
     {
+        if (banIpContent.CheckIsBan(eventArgs.Connection.EndPoint.Address))
+        {
+            logger.LogTrace("Auth Disconnect Ban Ip:{ip}", eventArgs.Connection.EndPoint.ToString());
+            await eventArgs.Connection.CustomDisconnectAsync("Ip Is Banned Form Server");
+            return;
+        }
+        
         AuthHandshakeC2S.Deserialize(eventArgs.HandshakeData, out var version, out var platform,
             out var matchmakerToken, out var friendCode);
-        var id = await clientAuthManager.CreateAuthInfoAsync(version, platform, matchmakerToken, friendCode,
+        var info = await clientAuthManager.CreateAuthInfoAsync(version, platform, matchmakerToken, friendCode,
             eventArgs.Connection.EndPoint.Address);
-        if (id == 0)
+        if (info == null)
         {
-            await eventArgs.Connection.Disconnect("Auth Info Create Failed");
-            logger.LogWarning("Auth Id is 0 {ip}", eventArgs.Connection.EndPoint.ToString());
+            await eventArgs.Connection.CustomDisconnectAsync("Auth Info Create Failed");
+            logger.LogWarning("Auth Info Is Null:{ip}", eventArgs.Connection.EndPoint.ToString());
             return;
         }
 
+        if (info.IsBanned)
+        {
+            await eventArgs.Connection.CustomDisconnectAsync("Banned Auth Info From Server");
+            logger.LogWarning("Auth Info Is Banned:{ip}", eventArgs.Connection.EndPoint.ToString());
+            return;
+        }
+        
+
         using var writer = MessageWriter.Get(MessageType.Reliable);
         writer.StartMessage(1);
-        writer.Write(id);
+        writer.Write(info.LastId);
         writer.EndMessage();
-        logger.LogInformation("Has New Auth Ip:{ip} LastId:{Id}", eventArgs.Connection.EndPoint.ToString(), id);
+        logger.LogInformation("Has New Auth Ip:{ip} LastId:{Id}", eventArgs.Connection.EndPoint.ToString(), info.LastId);
         await eventArgs.Connection.SendAsync(writer);
     }
 
     private async ValueTask OnConnectionAsync(NewConnectionEventArgs eventArgs, ListenerConfig config)
     {
+        if (banIpContent.CheckIsBan(eventArgs.Connection.EndPoint.Address))
+        {
+            logger.LogTrace("Connection Disconnect Ban Ip:{ip}", eventArgs.Connection.EndPoint.ToString());
+            await eventArgs.Connection.CustomDisconnectAsync("Ip Is Banned Form Server");
+            return;
+        }
+        
         // Handshake.
         HandshakeC2S.Deserialize(
             eventArgs.HandshakeData, config.IsDtl,
@@ -247,35 +276,47 @@ internal sealed class NetListenerManager(
             out var platformSpecificData, out var matchmakerToken,
             out var lastId, out var friendCode
         );
-
-        logger.LogInformation(
-            "Has New Connection Ip:{ip} isDtl:{dtl} Name:{name} Token:{token} FriendCode:{code} LastId:{Id}",
-            eventArgs.Connection.EndPoint.ToString(), config.IsDtl, name, matchmakerToken, friendCode, lastId);
-
+        
         var connection = new HazelConnection(eventArgs.Connection, connectionLogger);
-
+        ClientAuthInfo? authInfo = null;
         if (config is { IsDtl: false, HasAuth: true })
         {
-            if (lastId == 0 || !clientAuthManager.TryGetAuthInfo(lastId, out var info))
+            if (lastId == 0 || !clientAuthManager.TryGetAuthInfo(lastId, out authInfo))
             {
-                await connection.DisconnectAsync("Auth is required");
+                await connection.CustomDisconnectAsync(DisconnectReason.Custom, "Auth is required");
                 logger.LogWarning("Auth Is required {ip}", eventArgs.Connection.EndPoint.ToString());
                 return;
             }
 
-            if (!info.TargetIp.Equals(eventArgs.Connection.EndPoint.Address))
+            if (!authInfo.TargetIp.Equals(eventArgs.Connection.EndPoint.Address))
             {
-                await connection.DisconnectAsync("Auth IP And Connection IP Not Same");
+                await connection.CustomDisconnectAsync(DisconnectReason.Custom, "Auth IP And Connection IP Not Same");
                 logger.LogWarning("Auth IP And Connection IP Not Same {ip}", eventArgs.Connection.EndPoint.ToString());
                 return;
             }
+
+            if (authInfo.IsBanned)
+            {
+                await connection.CustomDisconnectAsync(DisconnectReason.Custom, "Banned Auth Info From Server");
+                logger.LogWarning("Auth Info Is Banned:{ip}", eventArgs.Connection.EndPoint.ToString());
+                return;
+            }
         }
+        
+        logger.LogInformation(
+            "Has New Connection Ip:{ip} isDtl:{dtl} Name:{name} LastId:{Id} FriendCode:{code} MatchmakerToken:{token}",
+            eventArgs.Connection.EndPoint.ToString(),
+            config.IsDtl,
+            name,
+            lastId,
+            friendCode ?? authInfo?.FriendCode ?? string.Empty,
+            matchmakerToken ?? authInfo?.MatchmakerToken ?? string.Empty);
 
         await eventManager.CallAsync(new ClientConnectionEvent(connection, eventArgs.HandshakeData));
 
         // Register client
         await clientManager.RegisterConnectionAsync(connection, name, clientVersion, language, chatMode,
-            platformSpecificData);
+            platformSpecificData, authInfo);
     }
 
     public ListenerInfo? GetAvailableListenerInfo()
@@ -294,12 +335,7 @@ internal sealed class NetListenerManager(
         {
             await info.AuthListener.DisposeAsync();
         }
-
-        lock (Listeners)
-        {
-            Listeners.Remove(info);
-        }
-
+        Listeners.Remove(info);
         OnDisposeListener?.Invoke(this, info.Config);
     }
 

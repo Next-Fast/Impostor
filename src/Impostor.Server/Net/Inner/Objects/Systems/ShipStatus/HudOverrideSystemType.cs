@@ -8,7 +8,7 @@ public class HudOverrideSystemType : ISystemType, IActivatable
 
     public void Serialize(IMessageWriter writer, bool initialState)
     {
-        throw new NotImplementedException();
+
     }
 
     public void Deserialize(IMessageReader reader, bool initialState)

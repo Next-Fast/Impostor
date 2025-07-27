@@ -5,10 +5,11 @@ using Impostor.Api.Net.Inner.Objects.ShipStatus;
 using Impostor.Server.Net.Inner.Objects.Systems;
 using Impostor.Server.Net.Inner.Objects.Systems.ShipStatus;
 using Impostor.Server.Net.State;
+using Microsoft.Extensions.Logging;
 
 namespace Impostor.Server.Net.Inner.Objects.ShipStatus;
 
-internal class InnerAirshipStatus(Game game) : InnerShipStatus(game, MapTypes.Airship), IInnerAirshipStatus
+internal class InnerAirshipStatus(Game game, ILogger<InnerAirshipStatus> logger) : InnerShipStatus(game, MapTypes.Airship, logger), IInnerAirshipStatus
 {
     public Vector2 PreSpawnLocation { get; } = new(-25f, 40f);
 
